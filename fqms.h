@@ -1,5 +1,5 @@
-#ifndef VOXELMAN_MESH_UTILS_H
-#define VOXELMAN_MESH_UTILS_H
+#ifndef FQMS_H
+#define FQMS_H
 
 /*
 

@@ -1,6 +1,8 @@
-# Fast Quadratic Mesh Simplifier
+# Mesh Utils
 
-A port of https://github.com/Whinarn/UnityMeshSimplifier to a GODOT engine c++ module.
+My mesh merging utilities.
+
+Also contains A port of https://github.com/Whinarn/UnityMeshSimplifier to a GODOT engine c++ module.
 
 For future reference it's based on e8ff4e8862735197c3308cfe926eeba68e0d2edb.
 
