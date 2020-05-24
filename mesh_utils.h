@@ -1,6 +1,5 @@
 /*
-
-Copyright (c) 2020 Péter Magyar
+Copyright (c) 2019-2020 Péter Magyar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,27 +18,27 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 */
 
-#include "register_types.h"
+#ifndef MESH_UTILS_H
+#define MESH_UTILS_H
 
-#include "core/engine.h"
-#include "fast_quadratic_mesh_simplifier.h"
-#include "mesh_utils.h"
+#include "core/object.h"
 
-static MeshUtils *mesh_utils = NULL;
+class MeshUtils : public Object {
+	GDCLASS(MeshUtils, Object);
 
-void register_mesh_utils_types() {
-	ClassDB::register_class<FastQuadraticMeshSimplifier>();
+public:
+	static MeshUtils *get_singleton();
 
-	mesh_utils = memnew(MeshUtils);
-	ClassDB::register_class<MeshUtils>();
-	Engine::get_singleton()->add_singleton(Engine::Singleton("MeshUtils", MeshUtils::get_singleton()));
-}
+	MeshUtils();
+	~MeshUtils();
 
-void unregister_mesh_utils_types() {
-	if (mesh_utils) {
-		memdelete(mesh_utils);
-	}
-}
+protected:
+	static void _bind_methods();
+
+private:
+	static MeshUtils *_instance;
+};
+
+#endif

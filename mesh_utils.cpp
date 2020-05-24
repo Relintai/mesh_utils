@@ -1,6 +1,5 @@
 /*
-
-Copyright (c) 2020 Péter Magyar
+Copyright (c) 2019-2020 Péter Magyar
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -12,34 +11,30 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRMeshUtils OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+FITNMeshUtils FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 */
 
-#include "register_types.h"
-
-#include "core/engine.h"
-#include "fast_quadratic_mesh_simplifier.h"
 #include "mesh_utils.h"
 
-static MeshUtils *mesh_utils = NULL;
+MeshUtils *MeshUtils::_instance;
 
-void register_mesh_utils_types() {
-	ClassDB::register_class<FastQuadraticMeshSimplifier>();
-
-	mesh_utils = memnew(MeshUtils);
-	ClassDB::register_class<MeshUtils>();
-	Engine::get_singleton()->add_singleton(Engine::Singleton("MeshUtils", MeshUtils::get_singleton()));
+MeshUtils *MeshUtils::get_singleton() {
+	return _instance;
 }
 
-void unregister_mesh_utils_types() {
-	if (mesh_utils) {
-		memdelete(mesh_utils);
-	}
+MeshUtils::MeshUtils() {
+	_instance = this;
+}
+
+MeshUtils::~MeshUtils() {
+	_instance = NULL;
+}
+
+void MeshUtils::_bind_methods() {
 }

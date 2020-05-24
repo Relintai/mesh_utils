@@ -11,7 +11,7 @@ module_env = env.Clone()
 sources = [
 
     "register_types.cpp",
-
+    "mesh_utils.cpp",
     "fast_quadratic_mesh_simplifier.cpp",
 ]
 
