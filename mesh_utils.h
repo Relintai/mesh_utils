@@ -25,11 +25,16 @@ SOFTWARE.
 
 #include "core/object.h"
 
+#include "scene/resources/texture.h"
+
 class MeshUtils : public Object {
 	GDCLASS(MeshUtils, Object);
 
 public:
 	static MeshUtils *get_singleton();
+
+	Array merge_mesh_array(Array arr) const;
+	Array bake_mesh_array_uv(Array arr, Ref<Texture> tex, float mul_color = 0.7) const;
 
 	MeshUtils();
 	~MeshUtils();
