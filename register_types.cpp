@@ -26,12 +26,14 @@ SOFTWARE.
 
 #include "core/engine.h"
 #include "fast_quadratic_mesh_simplifier.h"
+#include "mesh_merger.h"
 #include "mesh_utils.h"
 
 static MeshUtils *mesh_utils = NULL;
 
 void register_mesh_utils_types() {
 	ClassDB::register_class<FastQuadraticMeshSimplifier>();
+	ClassDB::register_class<MeshMerger>();
 
 	mesh_utils = memnew(MeshUtils);
 	ClassDB::register_class<MeshUtils>();

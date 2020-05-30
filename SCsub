@@ -4,14 +4,14 @@ Import('env')
 
 module_env = env.Clone()
 
-#Should work with just arrays
-#if os.path.isdir('../mesh_data_resource'):
-#    module_env.Append(CPPDEFINES=['MESH_DATA_RESOURCE_PRESENT'])
+if os.path.isdir('../mesh_data_resource'):
+    module_env.Append(CPPDEFINES=['MESH_DATA_RESOURCE_PRESENT'])
 
 sources = [
 
     "register_types.cpp",
     "mesh_utils.cpp",
+    "mesh_merger.cpp",
     "fast_quadratic_mesh_simplifier.cpp",
 ]
 
