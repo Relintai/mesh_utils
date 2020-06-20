@@ -27,7 +27,6 @@ SOFTWARE.
 #include mesh_instance_h
 
 bool MeshMerger::Vertex::operator==(const Vertex &p_vertex) const {
-
 	if (vertex != p_vertex.vertex)
 		return false;
 
@@ -63,7 +62,6 @@ bool MeshMerger::Vertex::operator==(const Vertex &p_vertex) const {
 }
 
 uint32_t MeshMerger::VertexHasher::hash(const Vertex &p_vtx) {
-
 	uint32_t h = hash_djb2_buffer((const uint8_t *)&p_vtx.vertex, sizeof(real_t) * 3);
 	h = hash_djb2_buffer((const uint8_t *)&p_vtx.normal, sizeof(real_t) * 3, h);
 	h = hash_djb2_buffer((const uint8_t *)&p_vtx.binormal, sizeof(real_t) * 3, h);
@@ -247,7 +245,11 @@ Array MeshMerger::build_mesh() {
 			int curr = i * 4;
 
 			for (int j = 0; j < vertex.bones.size(); ++j) {
+#if !GODOT4
 				wb[curr + j] = vertex.bones[j];
+#else
+				bone_array.write[curr + j] = vertex.bones[j];
+#endif
 			}
 		}
 
@@ -271,7 +273,11 @@ Array MeshMerger::build_mesh() {
 			int curr = i * 4;
 
 			for (int j = 0; j < vertex.bones.size(); ++j) {
+#if !GODOT4
 				wbw[curr + j] = vertex.weights[j];
+#else
+				bone_weights_array.write[curr + j] = vertex.weights[j];
+#endif
 			}
 		}
 
@@ -320,7 +326,6 @@ void MeshMerger::build_mesh_into(RID mesh) {
 }
 
 void MeshMerger::generate_normals(bool p_flip) {
-
 	_format = _format | VisualServer::ARRAY_FORMAT_NORMAL;
 
 	for (int i = 0; i < _indices.size(); i += 3) {
@@ -660,11 +665,9 @@ PoolVector<Vector3> MeshMerger::build_collider() const {
 		return face_points;
 
 	if (_indices.size() == 0) {
-
 		int len = (_vertices.size() / 4);
 
 		for (int i = 0; i < len; ++i) {
-
 			face_points.push_back(_vertices.get(i * 4).vertex);
 			face_points.push_back(_vertices.get((i * 4) + 2).vertex);
 			face_points.push_back(_vertices.get((i * 4) + 1).vertex);

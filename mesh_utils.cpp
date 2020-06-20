@@ -22,8 +22,11 @@ SOFTWARE.
 
 #include "mesh_utils.h"
 
-#include "defines.h"
 #include visual_server_h
+
+#if GODOT4
+#define Texture Texture2D
+#endif
 
 MeshUtils *MeshUtils::_instance;
 
@@ -139,3 +142,7 @@ void MeshUtils::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("merge_mesh_array", "arr"), &MeshUtils::merge_mesh_array);
 	ClassDB::bind_method(D_METHOD("bake_mesh_array_uv", "arr", "tex", "mul_color"), &MeshUtils::bake_mesh_array_uv, DEFVAL(0.7));
 }
+
+#if GODOT4
+#undef Texture
+#endif

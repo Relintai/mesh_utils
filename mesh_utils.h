@@ -27,6 +27,12 @@ SOFTWARE.
 
 #include "scene/resources/texture.h"
 
+#include "defines.h"
+
+#if GODOT4
+#define Texture Texture2D
+#endif
+
 class MeshUtils : public Object {
 	GDCLASS(MeshUtils, Object);
 
@@ -45,5 +51,9 @@ protected:
 private:
 	static MeshUtils *_instance;
 };
+
+#if GODOT4
+#undef Texture
+#endif
 
 #endif
