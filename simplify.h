@@ -448,6 +448,8 @@ public:
 						// Border check
 						if (v0.border != v1.border)
 							continue;
+						else if (_preserve_border_dges && v0.border)
+							continue;
 
 						//if (v0.border || v1.border) continue;
 
