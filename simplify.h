@@ -14,10 +14,18 @@
 //
 // 5/2016: Chris Rorden created minimal version for OSX/Linux/Windows compile
 
+#include "core/version.h"
+
+#if VERSION_MAJOR > 3
+#include "core/string/ustring.h"
+#include "core/variant/array.h"
+#else
+#include "core/ustring.h"
 #include "core/array.h"
+#endif
+
 #include "core/math/vector2.h"
 #include "core/math/vector3.h"
-#include "core/ustring.h"
 #include "scene/resources/mesh.h"
 
 #include <float.h> //FLT_EPSILON, DBL_EPSILON

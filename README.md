@@ -2,7 +2,7 @@
 
 This is a c++ engine module for the Godot engine, containing my mesh merging utilities.
 
-It supports both godot 3.2 and 4.0 (master). Note that since 4.0 is still in very early stages I only 
+It supports both godot 3.2 and 4.0 (master [last tested commit](https://github.com/godotengine/godot/commit/b7e10141197fdd9b0dbc4cfa7890329510d36540)). Note that since 4.0 is still in very early stages I only 
 check whether it works from time to time.
 
 # Pre-built binaries

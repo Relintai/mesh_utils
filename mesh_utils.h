@@ -23,7 +23,13 @@ SOFTWARE.
 #ifndef MESH_UTILS_H
 #define MESH_UTILS_H
 
+#include "core/version.h"
+
+#if VERSION_MAJOR > 3
+#include "core/object/object.h"
+#else
 #include "core/object.h"
+#endif
 
 #include "scene/resources/texture.h"
 

@@ -25,9 +25,15 @@ SOFTWARE.
 
 */
 
-#include "core/reference.h"
+#include "core/version.h"
 
+#if VERSION_MAJOR > 3
+#include "core/object/reference.h"
+#include "core/variant/array.h"
+#else
+#include "core/reference.h"
 #include "core/array.h"
+#endif
 
 #include "simplify.h"
 
