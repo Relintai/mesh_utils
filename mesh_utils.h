@@ -47,6 +47,10 @@ public:
 
 	Array merge_mesh_array(Array arr) const;
 	Array bake_mesh_array_uv(Array arr, Ref<Texture> tex, float mul_color = 0.7) const;
+	//If normals are present they need to match too to be removed
+	Array remove_doubles(Array arr) const;
+	//Normals are always interpolated, merged
+	Array remove_doubles_interpolate_normals(Array arr) const;
 
 	MeshUtils();
 	~MeshUtils();
