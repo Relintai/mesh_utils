@@ -86,12 +86,19 @@ Array MeshUtils::merge_mesh_array(Array arr) const {
 	}
 
 	arr[VisualServer::ARRAY_VERTEX] = verts;
-	arr[VisualServer::ARRAY_NORMAL] = normals;
-	arr[VisualServer::ARRAY_TEX_UV] = uvs;
-	arr[VisualServer::ARRAY_COLOR] = colors;
-	arr[VisualServer::ARRAY_INDEX] = indices;
-	arr[VisualServer::ARRAY_BONES] = bones;
-	arr[VisualServer::ARRAY_WEIGHTS] = weights;
+
+	if (normals.size() > 0)
+		arr[VisualServer::ARRAY_NORMAL] = normals;
+	if (uvs.size() > 0)
+		arr[VisualServer::ARRAY_TEX_UV] = uvs;
+	if (colors.size() > 0)
+		arr[VisualServer::ARRAY_COLOR] = colors;
+	if (indices.size() > 0)
+		arr[VisualServer::ARRAY_INDEX] = indices;
+	if (bones.size() > 0)
+		arr[VisualServer::ARRAY_BONES] = bones;
+	if (weights.size() > 0)
+		arr[VisualServer::ARRAY_WEIGHTS] = weights;
 
 	return arr;
 }
@@ -264,12 +271,19 @@ Array MeshUtils::remove_doubles(Array arr) const {
 	}
 
 	arr[VisualServer::ARRAY_VERTEX] = verts;
-	arr[VisualServer::ARRAY_NORMAL] = normals;
-	arr[VisualServer::ARRAY_TEX_UV] = uvs;
-	arr[VisualServer::ARRAY_COLOR] = colors;
-	arr[VisualServer::ARRAY_INDEX] = indices;
-	arr[VisualServer::ARRAY_BONES] = bones;
-	arr[VisualServer::ARRAY_WEIGHTS] = weights;
+
+	if (normals.size() > 0)
+		arr[VisualServer::ARRAY_NORMAL] = normals;
+	if (uvs.size() > 0)
+		arr[VisualServer::ARRAY_TEX_UV] = uvs;
+	if (colors.size() > 0)
+		arr[VisualServer::ARRAY_COLOR] = colors;
+	if (indices.size() > 0)
+		arr[VisualServer::ARRAY_INDEX] = indices;
+	if (bones.size() > 0)
+		arr[VisualServer::ARRAY_BONES] = bones;
+	if (weights.size() > 0)
+		arr[VisualServer::ARRAY_WEIGHTS] = weights;
 
 	return arr;
 }
@@ -405,12 +419,19 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 	}
 
 	arr[VisualServer::ARRAY_VERTEX] = verts;
-	arr[VisualServer::ARRAY_NORMAL] = normals;
-	arr[VisualServer::ARRAY_TEX_UV] = uvs;
-	arr[VisualServer::ARRAY_COLOR] = colors;
-	arr[VisualServer::ARRAY_INDEX] = indices;
-	arr[VisualServer::ARRAY_BONES] = bones;
-	arr[VisualServer::ARRAY_WEIGHTS] = weights;
+
+	if (normals.size() > 0)
+		arr[VisualServer::ARRAY_NORMAL] = normals;
+	if (uvs.size() > 0)
+		arr[VisualServer::ARRAY_TEX_UV] = uvs;
+	if (colors.size() > 0)
+		arr[VisualServer::ARRAY_COLOR] = colors;
+	if (indices.size() > 0)
+		arr[VisualServer::ARRAY_INDEX] = indices;
+	if (bones.size() > 0)
+		arr[VisualServer::ARRAY_BONES] = bones;
+	if (weights.size() > 0)
+		arr[VisualServer::ARRAY_WEIGHTS] = weights;
 
 	return arr;
 }
