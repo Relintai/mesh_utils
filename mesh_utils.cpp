@@ -213,16 +213,24 @@ Array MeshUtils::remove_doubles(Array arr) const {
 			}
 
 			if (bones.size() != 0) {
+				bool bequals = true;
+
 				int indx = i * 4;
 
 				for (int l = 0; l < 4; ++l) {
 					if (bones[indx + l] != bone[l]) {
-						continue;
+						bequals = false;
+						break;
 					}
 
 					if (!Math::is_equal_approx(weights[indx + l], weight[l])) {
-						continue;
+						bequals = false;
+						break;
 					}
+				}
+
+				if (!bequals) {
+					continue;
 				}
 			}
 
@@ -270,22 +278,26 @@ Array MeshUtils::remove_doubles(Array arr) const {
 		++i;
 	}
 
-	arr[VisualServer::ARRAY_VERTEX] = verts;
+
+	Array retarr;
+	retarr.resize(VisualServer::ARRAY_MAX);
+
+	retarr[VisualServer::ARRAY_VERTEX] = verts;
 
 	if (normals.size() > 0)
-		arr[VisualServer::ARRAY_NORMAL] = normals;
+		retarr[VisualServer::ARRAY_NORMAL] = normals;
 	if (uvs.size() > 0)
-		arr[VisualServer::ARRAY_TEX_UV] = uvs;
+		retarr[VisualServer::ARRAY_TEX_UV] = uvs;
 	if (colors.size() > 0)
-		arr[VisualServer::ARRAY_COLOR] = colors;
+		retarr[VisualServer::ARRAY_COLOR] = colors;
 	if (indices.size() > 0)
-		arr[VisualServer::ARRAY_INDEX] = indices;
+		retarr[VisualServer::ARRAY_INDEX] = indices;
 	if (bones.size() > 0)
-		arr[VisualServer::ARRAY_BONES] = bones;
+		retarr[VisualServer::ARRAY_BONES] = bones;
 	if (weights.size() > 0)
-		arr[VisualServer::ARRAY_WEIGHTS] = weights;
+		retarr[VisualServer::ARRAY_WEIGHTS] = weights;
 
-	return arr;
+	return retarr;
 }
 
 //Normals are always interpolated, merged
@@ -353,16 +365,24 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 			}
 
 			if (bones.size() != 0) {
+				bool bequals = true;
+
 				int indx = i * 4;
 
 				for (int l = 0; l < 4; ++l) {
 					if (bones[indx + l] != bone[l]) {
-						continue;
+						bequals = false;
+						break;
 					}
 
 					if (!Math::is_equal_approx(weights[indx + l], weight[l])) {
-						continue;
+						bequals = false;
+						break;
 					}
+				}
+
+				if (!bequals) {
+					continue;
 				}
 			}
 
@@ -418,22 +438,25 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 		++i;
 	}
 
-	arr[VisualServer::ARRAY_VERTEX] = verts;
+	Array retarr;
+	retarr.resize(VisualServer::ARRAY_MAX);
+
+	retarr[VisualServer::ARRAY_VERTEX] = verts;
 
 	if (normals.size() > 0)
-		arr[VisualServer::ARRAY_NORMAL] = normals;
+		retarr[VisualServer::ARRAY_NORMAL] = normals;
 	if (uvs.size() > 0)
-		arr[VisualServer::ARRAY_TEX_UV] = uvs;
+		retarr[VisualServer::ARRAY_TEX_UV] = uvs;
 	if (colors.size() > 0)
-		arr[VisualServer::ARRAY_COLOR] = colors;
+		retarr[VisualServer::ARRAY_COLOR] = colors;
 	if (indices.size() > 0)
-		arr[VisualServer::ARRAY_INDEX] = indices;
+		retarr[VisualServer::ARRAY_INDEX] = indices;
 	if (bones.size() > 0)
-		arr[VisualServer::ARRAY_BONES] = bones;
+		retarr[VisualServer::ARRAY_BONES] = bones;
 	if (weights.size() > 0)
-		arr[VisualServer::ARRAY_WEIGHTS] = weights;
+		retarr[VisualServer::ARRAY_WEIGHTS] = weights;
 
-	return arr;
+	return retarr;
 }
 
 MeshUtils::MeshUtils() {
