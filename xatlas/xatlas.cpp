@@ -4645,8 +4645,6 @@ static uint32_t s_planarRegionsCurrentVertex;
 struct ChartGeneratorType {
 	enum Enum {
 		OriginalUv,
-		Planar,
-		Clustered,
 		Piecewise
 	};
 };
@@ -5644,10 +5642,6 @@ public:
 			m_unifiedMesh->addFace(unifiedIndices);
 		}
 		m_unifiedMesh->createBoundaries();
-		if (m_generatorType == segment::ChartGeneratorType::Planar) {
-			m_type = ChartType::Planar;
-			return;
-		}
 #if XA_CHECK_T_JUNCTIONS
 		m_tjunctionCount = meshCheckTJunctions(*m_unifiedMesh);
 #if XA_DEBUG_EXPORT_OBJ_TJUNCTION
@@ -5746,7 +5740,8 @@ public:
 				m_unifiedMesh->texcoord(i) = Vector2(dot(m_basis.tangent, m_unifiedMesh->position(i)), dot(m_basis.bitangent, m_unifiedMesh->position(i)));
 			XA_PROFILE_END(parameterizeChartsOrthogonal)
 			// Computing charts checks for flipped triangles and boundary intersection. Don't need to do that again here if chart is planar.
-			if (m_type != ChartType::Planar && m_generatorType != segment::ChartGeneratorType::OriginalUv) {
+
+			if (m_generatorType != segment::ChartGeneratorType::OriginalUv) {
 				XA_PROFILE_START(parameterizeChartsEvaluateQuality)
 				m_quality.computeBoundaryIntersection(m_unifiedMesh, boundaryGrid);
 				m_quality.computeFlippedFaces(m_unifiedMesh, nullptr);
@@ -5756,6 +5751,7 @@ public:
 				if (!m_quality.boundaryIntersection && m_quality.flippedTriangleCount == 0 && m_quality.zeroAreaTriangleCount == 0 && m_quality.totalGeometricArea > 0.0f && m_quality.stretchMetric <= 1.1f && m_quality.maxStretchMetric <= 1.25f)
 					m_type = ChartType::Ortho;
 			}
+
 			if (m_type == ChartType::LSCM) {
 				XA_PROFILE_START(parameterizeChartsLSCM)
 				if (options.paramFunc) {
@@ -7805,9 +7801,7 @@ void ComputeCharts(Atlas *atlas, ChartOptions options) {
 					tJunctionCount += chart->tjunctionCount();
 					if (chart->tjunctionCount() > 0)
 						chartsWithTJunctionsCount++;
-					if (chart->type() == ChartType::Planar)
-						planarChartsCount++;
-					else if (chart->type() == ChartType::Ortho)
+					if (chart->type() == ChartType::Ortho)
 						orthoChartsCount++;
 					else if (chart->type() == ChartType::LSCM)
 						lscmChartsCount++;
@@ -7840,9 +7834,7 @@ void ComputeCharts(Atlas *atlas, ChartOptions options) {
 					}
 #endif
 					const char *type = "LSCM";
-					if (chart->type() == ChartType::Planar)
-						type = "planar";
-					else if (chart->type() == ChartType::Ortho)
+					if (chart->type() == ChartType::Ortho)
 						type = "ortho";
 					else if (chart->type() == ChartType::Piecewise)
 						type = "piecewise";

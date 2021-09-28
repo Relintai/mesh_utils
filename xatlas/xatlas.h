@@ -40,7 +40,6 @@ Copyright NVIDIA Corporation 2006 -- Ignacio Castano <icastano@nvidia.com>
 namespace xatlas_mu {
 
 enum class ChartType {
-	Planar,
 	Ortho,
 	LSCM,
 	Piecewise,
