@@ -21,7 +21,9 @@ SOFTWARE.
 */
 
 #include "mesh_utils.h"
+#include "core/local_vector.h"
 #include "core/variant.h"
+#include "scene/resources/mesh.h"
 
 #include visual_server_h
 
@@ -281,7 +283,6 @@ Array MeshUtils::remove_doubles(Array arr) const {
 		++i;
 	}
 
-
 	Array retarr;
 	retarr.resize(VisualServer::ARRAY_MAX);
 
@@ -462,12 +463,183 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 	return retarr;
 }
 
-PoolVector2Array MeshUtils::uv_unwrap(Array arr) const {
-	xatlas_mu::Atlas * a = xatlas_mu::Create();
+PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
+	LocalVector<float> vertices;
+	LocalVector<float> normals;
+	LocalVector<int> indices;
 
-	xatlas_mu::Destroy(a);
+	PoolVector<Vector3> rvertices = arrays[Mesh::ARRAY_VERTEX];
+	int vc = rvertices.size();
+	PoolVector<Vector3>::Read r = rvertices.read();
 
-	return PoolVector2Array();
+	PoolVector<Vector3> rnormals = arrays[Mesh::ARRAY_NORMAL];
+	PoolVector<Vector3>::Read rn = rnormals.read();
+
+	int vertex_ofs = vertices.size() / 3;
+
+	vertices.resize((vertex_ofs + vc) * 3);
+	normals.resize((vertex_ofs + vc) * 3);
+
+	for (int j = 0; j < vc; j++) {
+		Vector3 v = r[j];
+		Vector3 n = rn[j];
+
+		vertices[(j + vertex_ofs) * 3 + 0] = v.x;
+		vertices[(j + vertex_ofs) * 3 + 1] = v.y;
+		vertices[(j + vertex_ofs) * 3 + 2] = v.z;
+		normals[(j + vertex_ofs) * 3 + 0] = n.x;
+		normals[(j + vertex_ofs) * 3 + 1] = n.y;
+		normals[(j + vertex_ofs) * 3 + 2] = n.z;
+	}
+
+	PoolVector<int> rindices = arrays[Mesh::ARRAY_INDEX];
+	int ic = rindices.size();
+
+	float eps = 1.19209290e-7F; // Taken from xatlas.h
+	if (ic == 0) {
+		for (int j = 0; j < vc / 3; j++) {
+			Vector3 p0 = r[j * 3 + 0];
+			Vector3 p1 = r[j * 3 + 1];
+			Vector3 p2 = r[j * 3 + 2];
+
+			if ((p0 - p1).length_squared() < eps || (p1 - p2).length_squared() < eps || (p2 - p0).length_squared() < eps) {
+				continue;
+			}
+
+			indices.push_back(vertex_ofs + j * 3 + 0);
+			indices.push_back(vertex_ofs + j * 3 + 1);
+			indices.push_back(vertex_ofs + j * 3 + 2);
+		}
+
+	} else {
+		PoolVector<int>::Read ri = rindices.read();
+
+		for (int j = 0; j < ic / 3; j++) {
+			Vector3 p0 = r[ri[j * 3 + 0]];
+			Vector3 p1 = r[ri[j * 3 + 1]];
+			Vector3 p2 = r[ri[j * 3 + 2]];
+
+			if ((p0 - p1).length_squared() < eps || (p1 - p2).length_squared() < eps || (p2 - p0).length_squared() < eps) {
+				continue;
+			}
+
+			indices.push_back(vertex_ofs + ri[j * 3 + 0]);
+			indices.push_back(vertex_ofs + ri[j * 3 + 1]);
+			indices.push_back(vertex_ofs + ri[j * 3 + 2]);
+		}
+	}
+
+	//unwrap
+	float p_texel_size = 1;
+	float *p_vertices = vertices.ptr();
+	float *p_normals = normals.ptr();
+	int p_vertex_count = vertices.size() / 3;
+	int *p_indices = indices.ptr();
+	int p_index_count = indices.size();
+
+	int *r_vertex;
+	int *r_index;
+	float *r_uv;
+	int r_vertex_count;
+	int r_index_count;
+	int r_size_hint_x;
+	int r_size_hint_y;
+
+	//&gen_uvs, &gen_vertices, &gen_vertex_count,
+	//&gen_indices, &gen_index_count, &size_x, &size_y);
+
+	//float **r_uv, int **r_vertex, int *r_vertex_count,
+	//int **r_index, int *r_index_count, int *r_size_hint_x, int *r_size_hint_y
+
+	// set up input mesh
+	xatlas_mu::MeshDecl input_mesh;
+	input_mesh.indexData = p_indices;
+	input_mesh.indexCount = p_index_count;
+	input_mesh.indexFormat = xatlas_mu::IndexFormat::UInt32;
+
+	input_mesh.vertexCount = p_vertex_count;
+	input_mesh.vertexPositionData = p_vertices;
+	input_mesh.vertexPositionStride = sizeof(float) * 3;
+	input_mesh.vertexNormalData = p_normals;
+	input_mesh.vertexNormalStride = sizeof(uint32_t) * 3;
+	input_mesh.vertexUvData = nullptr;
+	input_mesh.vertexUvStride = 0;
+
+	xatlas_mu::ChartOptions chart_options;
+	chart_options.fixWinding = true;
+
+	xatlas_mu::PackOptions pack_options;
+	pack_options.padding = 1;
+	pack_options.maxChartSize = 4094; // Lightmap atlassing needs 2 for padding between meshes, so 4096-2
+	pack_options.blockAlign = true;
+	pack_options.texelsPerUnit = 1.0 / p_texel_size;
+
+	xatlas_mu::Atlas *atlas = xatlas_mu::Create();
+
+	xatlas_mu::AddMeshError err = xatlas_mu::AddMesh(atlas, input_mesh, 1);
+	ERR_FAIL_COND_V_MSG(err != xatlas_mu::AddMeshError::Success, PoolVector2Array(), xatlas_mu::StringForEnum(err));
+
+	xatlas_mu::Generate(atlas, chart_options, pack_options);
+
+	r_size_hint_x = atlas->width;
+	r_size_hint_y = atlas->height;
+
+	float w = r_size_hint_x;
+	float h = r_size_hint_y;
+
+	if (w == 0 || h == 0) {
+		xatlas_mu::Destroy(atlas);
+		return PoolVector2Array(); //could not bake because there is no area
+	}
+
+	const xatlas_mu::Mesh &output = atlas->meshes[0];
+
+	r_vertex = (int *)malloc(sizeof(int) * output.vertexCount);
+	ERR_FAIL_NULL_V_MSG(*r_vertex, PoolVector2Array(), "Out of memory.");
+	r_uv = (float *)malloc(sizeof(float) * output.vertexCount * 2);
+	ERR_FAIL_NULL_V_MSG(*r_uv, PoolVector2Array(), "Out of memory.");
+	r_index = (int *)malloc(sizeof(int) * output.indexCount);
+	ERR_FAIL_NULL_V_MSG(*r_index, PoolVector2Array(), "Out of memory.");
+
+	float max_x = 0;
+	float max_y = 0;
+	for (uint32_t i = 0; i < output.vertexCount; i++) {
+		r_vertex[i] = output.vertexArray[i].xref;
+		r_uv[i * 2 + 0] = output.vertexArray[i].uv[0] / w;
+		r_uv[i * 2 + 1] = output.vertexArray[i].uv[1] / h;
+		max_x = MAX(max_x, output.vertexArray[i].uv[0]);
+		max_y = MAX(max_y, output.vertexArray[i].uv[1]);
+	}
+
+	r_vertex_count = output.vertexCount;
+
+	for (uint32_t i = 0; i < output.indexCount; i++) {
+		r_index[i] = output.indexArray[i];
+	}
+
+	r_index_count = output.indexCount;
+
+	xatlas_mu::Destroy(atlas);
+
+	PoolVector2Array retarr;
+	retarr.resize(r_vertex_count);
+
+	PoolVector2Array::Write retarrw = retarr.write();
+	
+	for (int i = 0; i < r_vertex_count; ++i) {
+		int uvind = i * 2;
+
+		retarrw[i] = Vector2(r_uv[uvind], r_uv[uvind + 1]);
+	}
+
+	retarrw.release();
+
+	//free stuff
+	::free(r_vertex);
+	::free(r_index);
+	::free(r_uv);
+
+	return retarr;
 }
 
 MeshUtils::MeshUtils() {
