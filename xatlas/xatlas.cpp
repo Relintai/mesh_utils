@@ -4511,9 +4511,11 @@ struct AtlasData {
 		const uint32_t edgeCount = mesh->edgeCount();
 		edgeDihedralAngles.resize(edgeCount);
 		edgeLengths.resize(edgeCount);
+		
 		faceAreas.resize(faceCount);
-		if (options.useInputMeshUvs)
+		//if (options.useInputMeshUvs)
 			faceUvAreas.resize(faceCount);
+
 		faceNormals.resize(faceCount);
 		isFaceInChart.resize(faceCount);
 		isFaceInChart.zeroOutMemory();
@@ -4527,8 +4529,10 @@ struct AtlasData {
 			}
 			faceAreas[f] = mesh->computeFaceArea(f);
 			XA_DEBUG_ASSERT(faceAreas[f] > 0.0f);
-			if (options.useInputMeshUvs)
-				faceUvAreas[f] = mesh->computeFaceParametricArea(f);
+
+			//if (options.useInputMeshUvs)
+			//	faceUvAreas[f] = mesh->computeFaceParametricArea(f);
+
 			faceNormals[f] = mesh->computeFaceNormal(f);
 		}
 		for (uint32_t face = 0; face < faceCount; face++) {
@@ -4566,8 +4570,10 @@ struct OriginalUvCharts {
 		for (uint32_t f = 0; f < faceCount; f++) {
 			if (m_data.isFaceInChart.get(f))
 				continue;
-			if (isZero(m_data.faceUvAreas[f], kAreaEpsilon))
-				continue; // Face must have valid UVs.
+
+			//if (isZero(m_data.faceUvAreas[f], kAreaEpsilon))
+			//	continue; // Face must have valid UVs.
+
 			// Found an unassigned face, create a new chart.
 			Chart chart;
 			chart.firstFace = m_chartFaces.size();
@@ -4597,7 +4603,8 @@ private:
 	};
 
 	void floodfillFaces(Chart &chart) {
-		const bool isFaceAreaNegative = m_data.faceUvAreas[m_chartFaces[chart.firstFace]] < 0.0f;
+		//const bool isFaceAreaNegative = m_data.faceUvAreas[m_chartFaces[chart.firstFace]] < 0.0f;
+
 		for (;;) {
 			bool newFaceAdded = false;
 			const uint32_t faceCount = chart.faceCount;
@@ -4609,10 +4616,12 @@ private:
 						continue; // Boundary edge.
 					if (m_data.isFaceInChart.get(face))
 						continue; // Already assigned to a chart.
-					if (isZero(m_data.faceUvAreas[face], kAreaEpsilon))
-						continue; // Face must have valid UVs.
-					if ((m_data.faceUvAreas[face] < 0.0f) != isFaceAreaNegative)
-						continue; // Face winding is opposite of the first chart face.
+
+					//if (isZero(m_data.faceUvAreas[face], kAreaEpsilon))
+					//	continue; // Face must have valid UVs.
+
+					//if ((m_data.faceUvAreas[face] < 0.0f) != isFaceAreaNegative)
+					//	continue; // Face winding is opposite of the first chart face.
 
 
 					//const Vector2 &uv0 = m_data.mesh->texcoord(edgeIt.vertex0());
@@ -7938,9 +7947,9 @@ void ComputeCharts(Atlas *atlas, ChartOptions options) {
 		XA_PROFILE_PRINT_AND_RESET("         Build atlas: ", buildAtlas)
 		XA_PROFILE_PRINT_AND_RESET("            Init: ", buildAtlasInit)
 		XA_PROFILE_PRINT_AND_RESET("            Planar charts: ", planarCharts)
-		if (options.useInputMeshUvs) {
-			XA_PROFILE_PRINT_AND_RESET("            Original UV charts: ", originalUvCharts)
-		}
+		//if (options.useInputMeshUvs) {
+		//	XA_PROFILE_PRINT_AND_RESET("            Original UV charts: ", originalUvCharts)
+		//}
 		XA_PROFILE_PRINT_AND_RESET("            Clustered charts: ", clusteredCharts)
 		XA_PROFILE_PRINT_AND_RESET("               Place seeds: ", clusteredChartsPlaceSeeds)
 		XA_PROFILE_PRINT_AND_RESET("                  Boundary intersection: ", clusteredChartsPlaceSeedsBoundaryIntersection)

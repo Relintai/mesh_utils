@@ -179,7 +179,7 @@ struct ChartOptions {
 	float maxCost = 2.0f; // If total of all metrics * weights > maxCost, don't grow chart. Lower values result in more charts.
 	uint32_t maxIterations = 1; // Number of iterations of the chart growing and seeding phases. Higher values result in better charts.
 
-	bool useInputMeshUvs = false; // Use MeshDecl::vertexUvData for charts.
+	//bool useInputMeshUvs = false; // Use MeshDecl::vertexUvData for charts.
 	bool fixWinding = false; // Enforce consistent texture coordinate winding.
 };
 
