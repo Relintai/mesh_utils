@@ -131,7 +131,6 @@ Copyright (c) 2012 Brandon Pelfrey
 #define XA_DEBUG_EXPORT_ATLAS_IMAGES 0
 #define XA_DEBUG_EXPORT_ATLAS_IMAGES_PER_CHART 0 // Export an atlas image after each chart is added.
 #define XA_DEBUG_EXPORT_BOUNDARY_GRID 0
-#define XA_DEBUG_EXPORT_TGA (XA_DEBUG_EXPORT_ATLAS_IMAGES || XA_DEBUG_EXPORT_BOUNDARY_GRID)
 #define XA_DEBUG_EXPORT_OBJ_FACE_GROUPS 0
 #define XA_DEBUG_EXPORT_OBJ_CHART_GROUPS 0
 #define XA_DEBUG_EXPORT_OBJ_PLANAR_REGIONS 0
@@ -3008,53 +3007,6 @@ private:
 
 	Array<TaskGroup *> m_groups;
 };
-
-#if XA_DEBUG_EXPORT_TGA
-const uint8_t TGA_TYPE_RGB = 2;
-const uint8_t TGA_ORIGIN_UPPER = 0x20;
-
-#pragma pack(push, 1)
-struct TgaHeader {
-	uint8_t id_length;
-	uint8_t colormap_type;
-	uint8_t image_type;
-	uint16_t colormap_index;
-	uint16_t colormap_length;
-	uint8_t colormap_size;
-	uint16_t x_origin;
-	uint16_t y_origin;
-	uint16_t width;
-	uint16_t height;
-	uint8_t pixel_size;
-	uint8_t flags;
-	enum { Size = 18 };
-};
-#pragma pack(pop)
-
-static void WriteTga(const char *filename, const uint8_t *data, uint32_t width, uint32_t height) {
-	XA_DEBUG_ASSERT(sizeof(TgaHeader) == TgaHeader::Size);
-	FILE *f;
-	XA_FOPEN(f, filename, "wb");
-	if (!f)
-		return;
-	TgaHeader tga;
-	tga.id_length = 0;
-	tga.colormap_type = 0;
-	tga.image_type = TGA_TYPE_RGB;
-	tga.colormap_index = 0;
-	tga.colormap_length = 0;
-	tga.colormap_size = 0;
-	tga.x_origin = 0;
-	tga.y_origin = 0;
-	tga.width = (uint16_t)width;
-	tga.height = (uint16_t)height;
-	tga.pixel_size = 24;
-	tga.flags = TGA_ORIGIN_UPPER;
-	fwrite(&tga, sizeof(TgaHeader), 1, f);
-	fwrite(data, sizeof(uint8_t), width * height * 3, f);
-	fclose(f);
-}
-#endif
 
 template <typename T>
 class ThreadLocal {
