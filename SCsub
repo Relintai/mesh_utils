@@ -13,6 +13,7 @@ sources = [
     "mesh_utils.cpp",
     "mesh_merger.cpp",
     "fast_quadratic_mesh_simplifier.cpp",
+    "xatlas/xatlas.cpp",
 ]
 
 if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':

@@ -21,8 +21,11 @@ SOFTWARE.
 */
 
 #include "mesh_utils.h"
+#include "core/variant.h"
 
 #include visual_server_h
+
+#include "xatlas/xatlas.h"
 
 #if GODOT4
 #define Texture Texture2D
@@ -459,6 +462,14 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 	return retarr;
 }
 
+PoolVector2Array MeshUtils::uv_unwrap(Array arr) const {
+	xatlas_mu::Atlas * a = xatlas_mu::Create();
+
+	xatlas_mu::Destroy(a);
+
+	return PoolVector2Array();
+}
+
 MeshUtils::MeshUtils() {
 	_instance = this;
 }
@@ -473,6 +484,8 @@ void MeshUtils::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("remove_doubles", "arr"), &MeshUtils::remove_doubles);
 	ClassDB::bind_method(D_METHOD("remove_doubles_interpolate_normals", "arr"), &MeshUtils::remove_doubles_interpolate_normals);
+
+	ClassDB::bind_method(D_METHOD("uv_unwrap", "arr"), &MeshUtils::uv_unwrap);
 }
 
 #if GODOT4

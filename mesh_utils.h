@@ -23,6 +23,7 @@ SOFTWARE.
 #ifndef MESH_UTILS_H
 #define MESH_UTILS_H
 
+#include "core/variant.h"
 #include "core/version.h"
 
 #if VERSION_MAJOR > 3
@@ -51,6 +52,9 @@ public:
 	Array remove_doubles(Array arr) const;
 	//Normals are always interpolated, merged
 	Array remove_doubles_interpolate_normals(Array arr) const;
+
+	//Only unwraps, does not create new seams
+	PoolVector2Array uv_unwrap(Array arr) const;
 
 	MeshUtils();
 	~MeshUtils();
