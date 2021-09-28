@@ -4613,6 +4613,44 @@ private:
 						continue; // Face must have valid UVs.
 					if ((m_data.faceUvAreas[face] < 0.0f) != isFaceAreaNegative)
 						continue; // Face winding is opposite of the first chart face.
+
+
+					//const Vector2 &uv0 = m_data.mesh->texcoord(edgeIt.vertex0());
+					//const Vector2 &uv1 = m_data.mesh->texcoord(edgeIt.vertex1());
+					//const Vector2 &ouv0 = m_data.mesh->texcoord(m_data.mesh->vertexAt(meshEdgeIndex0(edgeIt.oppositeEdge())));
+					//const Vector2 &ouv1 = m_data.mesh->texcoord(m_data.mesh->vertexAt(meshEdgeIndex1(edgeIt.oppositeEdge())));
+					//if (!equal(uv0, ouv1, m_data.mesh->epsilon()) || !equal(uv1, ouv0, m_data.mesh->epsilon()))
+					//	continue; // UVs must match exactly.
+
+
+					m_chartFaces.push_back(face);
+					chart.faceCount++;
+					m_data.isFaceInChart.set(face);
+					newFaceAdded = true;
+				}
+			}
+			if (!newFaceAdded)
+				break;
+		}
+	}
+
+	void floodfillFacesWithUV(Chart &chart) {
+		const bool isFaceAreaNegative = m_data.faceUvAreas[m_chartFaces[chart.firstFace]] < 0.0f;
+		for (;;) {
+			bool newFaceAdded = false;
+			const uint32_t faceCount = chart.faceCount;
+			for (uint32_t f = 0; f < faceCount; f++) {
+				const uint32_t sourceFace = m_chartFaces[chart.firstFace + f];
+				for (Mesh::FaceEdgeIterator edgeIt(m_data.mesh, sourceFace); !edgeIt.isDone(); edgeIt.advance()) {
+					const uint32_t face = edgeIt.oppositeFace();
+					if (face == UINT32_MAX)
+						continue; // Boundary edge.
+					if (m_data.isFaceInChart.get(face))
+						continue; // Already assigned to a chart.
+					if (isZero(m_data.faceUvAreas[face], kAreaEpsilon))
+						continue; // Face must have valid UVs.
+					if ((m_data.faceUvAreas[face] < 0.0f) != isFaceAreaNegative)
+						continue; // Face winding is opposite of the first chart face.
 					const Vector2 &uv0 = m_data.mesh->texcoord(edgeIt.vertex0());
 					const Vector2 &uv1 = m_data.mesh->texcoord(edgeIt.vertex1());
 					const Vector2 &ouv0 = m_data.mesh->texcoord(m_data.mesh->vertexAt(meshEdgeIndex0(edgeIt.oppositeEdge())));
