@@ -495,17 +495,8 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 	PoolVector<int> rindices = arrays[Mesh::ARRAY_INDEX];
 	int ic = rindices.size();
 
-	float eps = 1.19209290e-7F; // Taken from xatlas.h
 	if (ic == 0) {
 		for (int j = 0; j < vc / 3; j++) {
-			Vector3 p0 = r[j * 3 + 0];
-			Vector3 p1 = r[j * 3 + 1];
-			Vector3 p2 = r[j * 3 + 2];
-
-			if ((p0 - p1).length_squared() < eps || (p1 - p2).length_squared() < eps || (p2 - p0).length_squared() < eps) {
-				continue;
-			}
-
 			indices.push_back(vertex_ofs + j * 3 + 0);
 			indices.push_back(vertex_ofs + j * 3 + 1);
 			indices.push_back(vertex_ofs + j * 3 + 2);
@@ -515,14 +506,6 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 		PoolVector<int>::Read ri = rindices.read();
 
 		for (int j = 0; j < ic / 3; j++) {
-			Vector3 p0 = r[ri[j * 3 + 0]];
-			Vector3 p1 = r[ri[j * 3 + 1]];
-			Vector3 p2 = r[ri[j * 3 + 2]];
-
-			if ((p0 - p1).length_squared() < eps || (p1 - p2).length_squared() < eps || (p2 - p0).length_squared() < eps) {
-				continue;
-			}
-
 			indices.push_back(vertex_ofs + ri[j * 3 + 0]);
 			indices.push_back(vertex_ofs + ri[j * 3 + 1]);
 			indices.push_back(vertex_ofs + ri[j * 3 + 2]);
