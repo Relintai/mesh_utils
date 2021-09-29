@@ -2524,12 +2524,6 @@ public:
 		return m_texcoords[m_indices[e0]] != m_texcoords[m_indices[oe1]] || m_texcoords[m_indices[e1]] != m_texcoords[m_indices[oe0]];
 	}
 
-	uint32_t firstColocalVertex(uint32_t vertex) const {
-		return vertex;
-		//XA_DEBUG_ASSERT(m_firstColocalVertex.size() == m_positions.size());
-		//return m_firstColocalVertex[vertex];
-	}
-
 	XA_INLINE float epsilon() const { return m_epsilon; }
 	XA_INLINE uint32_t edgeCount() const { return m_indices.size(); }
 	XA_INLINE uint32_t oppositeEdge(uint32_t edge) const { return m_oppositeEdges[edge]; }
@@ -5595,22 +5589,14 @@ public:
 			uint32_t unifiedIndices[3];
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t sourceVertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
-				uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(sourceVertex);
-				//uint32_t sourceUnifiedVertex = sourceVertex;
-/*
-				if (m_generatorType == segment::ChartGeneratorType::OriginalUv && sourceVertex != sourceUnifiedVertex) {
-					// Original UVs: don't unify vertices with different UVs; we want to preserve UVs.
-					if (!equal(sourceMesh->texcoord(sourceVertex), sourceMesh->texcoord(sourceUnifiedVertex), sourceMesh->epsilon()))
-						sourceUnifiedVertex = sourceVertex;
+				uint32_t sourceUnifiedVertex = sourceVertex;
+
+				uint32_t unifiedVertex = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
+
+				if (unifiedVertex == UINT32_MAX) {
+					unifiedVertex = sourceVertexToUnifiedVertexMap.add(sourceUnifiedVertex);
+					m_unifiedMesh->addVertex(sourceMesh->position(sourceVertex), Vector3(0.0f), sourceMesh->texcoord(sourceVertex));
 				}
-*/
-
-				uint32_t unifiedVertex;// = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
-
-				//if (unifiedVertex == UINT32_MAX) {
-				unifiedVertex = sourceVertexToUnifiedVertexMap.add(sourceUnifiedVertex);
-				m_unifiedMesh->addVertex(sourceMesh->position(sourceVertex), Vector3(0.0f), sourceMesh->texcoord(sourceVertex));
-				//}
 
 				if (sourceVertexToChartVertexMap.get(sourceVertex) == UINT32_MAX) {
 					sourceVertexToChartVertexMap.add(sourceVertex);
@@ -5626,7 +5612,6 @@ public:
 			}
 			m_unifiedMesh->addFace(unifiedIndices);
 		}
-		printf("cre\n");
 		m_unifiedMesh->createBoundaries();
 #if XA_CHECK_T_JUNCTIONS
 		m_tjunctionCount = meshCheckTJunctions(*m_unifiedMesh);
@@ -5657,8 +5642,7 @@ public:
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t vertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
 
-				const uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(vertex);
-				//const uint32_t sourceUnifiedVertex = vertex;
+				const uint32_t sourceUnifiedVertex = vertex;
 
 				const uint32_t parentVertex = parentMesh->vertexAt(faces[f] * 3 + i);
 				uint32_t unifiedVertex = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
@@ -5689,7 +5673,6 @@ public:
 			}
 			m_unifiedMesh->addFace(unifiedIndices);
 		}
-		printf("cre2\n");
 		m_unifiedMesh->createBoundaries();
 		// Need to store texcoords for backup/restore so packing can be run multiple times.
 		backupTexcoords();
@@ -6143,7 +6126,6 @@ private:
 		}
 
 		XA_PROFILE_START(createChartGroupMeshBoundaries)
-		printf("cre3\n");
 		mesh->createBoundaries();
 		mesh->destroyEdgeMap(); // Only needed it for createBoundaries.
 		XA_PROFILE_END(createChartGroupMeshBoundaries)
