@@ -4639,7 +4639,8 @@ struct Atlas {
 	}
 
 	ChartGeneratorType::Enum chartGeneratorType(uint32_t chartIndex) const {
-			return ChartGeneratorType::OriginalUv;
+		//return ChartGeneratorType::OriginalUv;
+		return ChartGeneratorType::Piecewise;
 	}
 
 	void reset(const Mesh *mesh, const ChartOptions &options) {
