@@ -6523,33 +6523,27 @@ struct AddChartTaskArgs {
 };
 
 static void runAddChartTask(void *groupUserData, void *taskUserData) {
-	printf("1\n");
 	XA_PROFILE_START(packChartsAddChartsThread)
 	auto boundingBox = (ThreadLocal<BoundingBox2D> *)groupUserData;
 	auto args = (AddChartTaskArgs *)taskUserData;
 	param::Chart *paramChart = args->paramChart;
-	printf("2\n");
 	XA_PROFILE_START(packChartsAddChartsRestoreTexcoords)
 	paramChart->restoreTexcoords();
 	XA_PROFILE_END(packChartsAddChartsRestoreTexcoords)
-	printf("3\n");
 	Mesh *mesh = paramChart->unifiedMesh();
 	Chart *chart = args->chart = XA_NEW(MemTag::Default, Chart);
 	chart->atlasIndex = -1;
 	chart->material = 0;
 	chart->indices = mesh->indices();
 	chart->parametricArea = mesh->computeParametricArea();
-	printf("4\n");
 	if (chart->parametricArea < kAreaEpsilon) {
 		// When the parametric area is too small we use a rough approximation to prevent divisions by very small numbers.
 		const Vector2 bounds = paramChart->computeParametricBounds();
 		chart->parametricArea = bounds.x * bounds.y;
 	}
-	printf("5\n");
 	chart->surfaceArea = mesh->computeSurfaceArea();
 	chart->vertices = mesh->texcoords();
 	chart->boundaryEdges = &mesh->boundaryEdges();
-	printf("6\n");
 	// Compute bounding box of chart.
 	BoundingBox2D &bb = boundingBox->get();
 	bb.clear();
@@ -6557,13 +6551,11 @@ static void runAddChartTask(void *groupUserData, void *taskUserData) {
 		if (mesh->isBoundaryVertex(v))
 			bb.appendBoundaryVertex(mesh->texcoord(v));
 	}
-	printf("7\n");
 	bb.compute(mesh->texcoords());
 	chart->majorAxis = bb.majorAxis;
 	chart->minorAxis = bb.minorAxis;
 	chart->minCorner = bb.minCorner;
 	chart->maxCorner = bb.maxCorner;
-	printf("8\n");
 	XA_PROFILE_END(packChartsAddChartsThread)
 }
 
