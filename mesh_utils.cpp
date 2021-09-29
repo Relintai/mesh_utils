@@ -530,7 +530,7 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 	}
 
 	//unwrap
-	float p_texel_size = 1;
+	float p_texel_size = 0.05;
 	float *p_vertices = vertices.ptr();
 	float *p_normals = normals.ptr();
 	int p_vertex_count = vertices.size() / 3;
