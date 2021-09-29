@@ -464,6 +464,8 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 }
 
 PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
+	float p_texel_size = 0.05;
+	
 	LocalVector<float> vertices;
 	LocalVector<float> normals;
 	LocalVector<int> indices;
@@ -529,38 +531,16 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 		}
 	}
 
-	//unwrap
-	float p_texel_size = 0.05;
-	float *p_vertices = vertices.ptr();
-	float *p_normals = normals.ptr();
-	int p_vertex_count = vertices.size() / 3;
-	int *p_indices = indices.ptr();
-	int p_index_count = indices.size();
-
-	int *r_vertex;
-	int *r_index;
-	float *r_uv;
-	int r_vertex_count;
-	int r_index_count;
-	int r_size_hint_x;
-	int r_size_hint_y;
-
-	//&gen_uvs, &gen_vertices, &gen_vertex_count,
-	//&gen_indices, &gen_index_count, &size_x, &size_y);
-
-	//float **r_uv, int **r_vertex, int *r_vertex_count,
-	//int **r_index, int *r_index_count, int *r_size_hint_x, int *r_size_hint_y
-
 	// set up input mesh
 	xatlas_mu::MeshDecl input_mesh;
-	input_mesh.indexData = p_indices;
-	input_mesh.indexCount = p_index_count;
+	input_mesh.indexData = indices.ptr();
+	input_mesh.indexCount = indices.size();
 	input_mesh.indexFormat = xatlas_mu::IndexFormat::UInt32;
 
-	input_mesh.vertexCount = p_vertex_count;
-	input_mesh.vertexPositionData = p_vertices;
+	input_mesh.vertexCount = vertices.size() / 3;
+	input_mesh.vertexPositionData = vertices.ptr();
 	input_mesh.vertexPositionStride = sizeof(float) * 3;
-	input_mesh.vertexNormalData = p_normals;
+	input_mesh.vertexNormalData = normals.ptr();
 	input_mesh.vertexNormalStride = sizeof(uint32_t) * 3;
 	input_mesh.vertexUvData = nullptr;
 	input_mesh.vertexUvStride = 0;
@@ -581,11 +561,8 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 
 	xatlas_mu::Generate(atlas, chart_options, pack_options);
 
-	r_size_hint_x = atlas->width;
-	r_size_hint_y = atlas->height;
-
-	float w = r_size_hint_x;
-	float h = r_size_hint_y;
+	float w = atlas->width;
+	float h = atlas->height;
 
 	if (w == 0 || h == 0) {
 		xatlas_mu::Destroy(atlas);
@@ -594,52 +571,20 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 
 	const xatlas_mu::Mesh &output = atlas->meshes[0];
 
-	r_vertex = (int *)malloc(sizeof(int) * output.vertexCount);
-	ERR_FAIL_NULL_V_MSG(*r_vertex, PoolVector2Array(), "Out of memory.");
-	r_uv = (float *)malloc(sizeof(float) * output.vertexCount * 2);
-	ERR_FAIL_NULL_V_MSG(*r_uv, PoolVector2Array(), "Out of memory.");
-	r_index = (int *)malloc(sizeof(int) * output.indexCount);
-	ERR_FAIL_NULL_V_MSG(*r_index, PoolVector2Array(), "Out of memory.");
-
-	float max_x = 0;
-	float max_y = 0;
-	for (uint32_t i = 0; i < output.vertexCount; i++) {
-		uint32_t vind = output.vertexArray[i].xref;
-		r_vertex[i] = vind;
-
-		r_uv[vind * 2 + 0] = output.vertexArray[i].uv[0] / w;
-		r_uv[vind * 2 + 1] = output.vertexArray[i].uv[1] / h;
-		max_x = MAX(max_x, output.vertexArray[i].uv[0]);
-		max_y = MAX(max_y, output.vertexArray[i].uv[1]);
-	}
-
-	r_vertex_count = output.vertexCount;
-
-	for (uint32_t i = 0; i < output.indexCount; i++) {
-		r_index[i] = output.indexArray[i];
-	}
-
-	r_index_count = output.indexCount;
-
-	xatlas_mu::Destroy(atlas);
-
 	PoolVector2Array retarr;
-	retarr.resize(r_vertex_count);
+	retarr.resize(output.vertexCount);
 
 	PoolVector2Array::Write retarrw = retarr.write();
-	
-	for (int i = 0; i < r_vertex_count; ++i) {
-		int uvind = i * 2;
 
-		retarrw[i] = Vector2(r_uv[uvind], r_uv[uvind + 1]);
+	for (uint32_t i = 0; i < output.vertexCount; i++) {
+		int vind = output.vertexArray[i].xref;
+
+		retarrw[vind] = Vector2(output.vertexArray[i].uv[0] / w, output.vertexArray[i].uv[1] / h);
 	}
 
 	retarrw.release();
 
-	//free stuff
-	::free(r_vertex);
-	::free(r_index);
-	::free(r_uv);
+	xatlas_mu::Destroy(atlas);
 
 	return retarr;
 }
