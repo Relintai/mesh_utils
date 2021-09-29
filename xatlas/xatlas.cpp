@@ -722,9 +722,10 @@ static Vector3 operator-(const Vector3 &a, const Vector3 &b) {
 	return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
+/*
 static bool operator==(const Vector3 &a, const Vector3 &b) {
 	return a.x == b.x && a.y == b.y && a.z == b.z;
-}
+}*/
 
 static Vector3 cross(const Vector3 &a, const Vector3 &b) {
 	return Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
@@ -769,9 +770,10 @@ static Vector3 normalizeSafe(const Vector3 &v, const Vector3 &fallback) {
 	return fallback;
 }
 
+/*
 static bool equal(const Vector3 &v0, const Vector3 &v1, float epsilon) {
 	return fabs(v0.x - v1.x) <= epsilon && fabs(v0.y - v1.y) <= epsilon && fabs(v0.z - v1.z) <= epsilon;
-}
+}*/
 
 static Vector3 min(const Vector3 &a, const Vector3 &b) {
 	return Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
@@ -2258,7 +2260,7 @@ struct MeshFlags {
 class Mesh {
 public:
 	Mesh(float epsilon, uint32_t approxVertexCount, uint32_t approxFaceCount, uint32_t flags = 0, uint32_t id = UINT32_MAX) :
-			m_epsilon(epsilon), m_flags(flags), m_id(id), m_faceIgnore(MemTag::Mesh), m_faceMaterials(MemTag::Mesh), m_indices(MemTag::MeshIndices), m_positions(MemTag::MeshPositions), m_normals(MemTag::MeshNormals), m_texcoords(MemTag::MeshTexcoords), m_nextColocalVertex(MemTag::MeshColocals), m_firstColocalVertex(MemTag::MeshColocals), m_boundaryEdges(MemTag::MeshBoundaries), m_oppositeEdges(MemTag::MeshBoundaries), m_edgeMap(MemTag::MeshEdgeMap, approxFaceCount * 3) {
+			m_epsilon(epsilon), m_flags(flags), m_id(id), m_faceIgnore(MemTag::Mesh), m_faceMaterials(MemTag::Mesh), m_indices(MemTag::MeshIndices), m_positions(MemTag::MeshPositions), m_normals(MemTag::MeshNormals), m_texcoords(MemTag::MeshTexcoords), m_boundaryEdges(MemTag::MeshBoundaries), m_oppositeEdges(MemTag::MeshBoundaries), m_edgeMap(MemTag::MeshEdgeMap, approxFaceCount * 3) {
 		m_indices.reserve(approxFaceCount * 3);
 		m_positions.reserve(approxVertexCount);
 		m_texcoords.reserve(approxVertexCount);
@@ -2294,92 +2296,6 @@ public:
 			const uint32_t vertex1 = m_indices[firstIndex + (i + 1) % 3];
 			m_edgeMap.add(EdgeKey(vertex0, vertex1));
 		}
-	}
-
-	void createColocalsBVH() {
-		const uint32_t vertexCount = m_positions.size();
-		Array<AABB> aabbs(MemTag::BVH);
-		aabbs.resize(vertexCount);
-		for (uint32_t i = 0; i < m_positions.size(); i++)
-			aabbs[i] = AABB(m_positions[i], m_epsilon);
-		BVH bvh(aabbs);
-		Array<uint32_t> colocals(MemTag::MeshColocals);
-		Array<uint32_t> potential(MemTag::MeshColocals);
-		m_nextColocalVertex.resize(vertexCount);
-		m_nextColocalVertex.fillBytes(0xff);
-		m_firstColocalVertex.resize(vertexCount);
-		m_firstColocalVertex.fillBytes(0xff);
-		for (uint32_t i = 0; i < vertexCount; i++) {
-			if (m_nextColocalVertex[i] != UINT32_MAX)
-				continue; // Already linked.
-			// Find other vertices colocal to this one.
-			colocals.clear();
-			colocals.push_back(i); // Always add this vertex.
-			bvh.query(AABB(m_positions[i], m_epsilon), potential);
-			for (uint32_t j = 0; j < potential.size(); j++) {
-				const uint32_t otherVertex = potential[j];
-				if (otherVertex != i && equal(m_positions[i], m_positions[otherVertex], m_epsilon) && m_nextColocalVertex[otherVertex] == UINT32_MAX)
-					colocals.push_back(otherVertex);
-			}
-			if (colocals.size() == 1) {
-				// No colocals for this vertex.
-				m_nextColocalVertex[i] = i;
-				m_firstColocalVertex[i] = i;
-				continue;
-			}
-			// Link in ascending order.
-			insertionSort(colocals.data(), colocals.size());
-			for (uint32_t j = 0; j < colocals.size(); j++) {
-				m_nextColocalVertex[colocals[j]] = colocals[(j + 1) % colocals.size()];
-				m_firstColocalVertex[colocals[j]] = colocals[0];
-			}
-			XA_DEBUG_ASSERT(m_nextColocalVertex[i] != UINT32_MAX);
-		}
-	}
-
-	void createColocalsHash() {
-		const uint32_t vertexCount = m_positions.size();
-		HashMap<Vector3> positionToVertexMap(MemTag::Default, vertexCount);
-		for (uint32_t i = 0; i < vertexCount; i++)
-			positionToVertexMap.add(m_positions[i]);
-		Array<uint32_t> colocals(MemTag::MeshColocals);
-		m_nextColocalVertex.resize(vertexCount);
-		m_nextColocalVertex.fillBytes(0xff);
-		m_firstColocalVertex.resize(vertexCount);
-		m_firstColocalVertex.fillBytes(0xff);
-		for (uint32_t i = 0; i < vertexCount; i++) {
-			if (m_nextColocalVertex[i] != UINT32_MAX)
-				continue; // Already linked.
-			// Find other vertices colocal to this one.
-			colocals.clear();
-			colocals.push_back(i); // Always add this vertex.
-			uint32_t otherVertex = positionToVertexMap.get(m_positions[i]);
-			while (otherVertex != UINT32_MAX) {
-				if (otherVertex != i && equal(m_positions[i], m_positions[otherVertex], m_epsilon) && m_nextColocalVertex[otherVertex] == UINT32_MAX)
-					colocals.push_back(otherVertex);
-				otherVertex = positionToVertexMap.getNext(m_positions[i], otherVertex);
-			}
-			if (colocals.size() == 1) {
-				// No colocals for this vertex.
-				m_nextColocalVertex[i] = i;
-				m_firstColocalVertex[i] = i;
-				continue;
-			}
-			// Link in ascending order.
-			insertionSort(colocals.data(), colocals.size());
-			for (uint32_t j = 0; j < colocals.size(); j++) {
-				m_nextColocalVertex[colocals[j]] = colocals[(j + 1) % colocals.size()];
-				m_firstColocalVertex[colocals[j]] = colocals[0];
-			}
-			XA_DEBUG_ASSERT(m_nextColocalVertex[i] != UINT32_MAX);
-		}
-	}
-
-	void createColocals() {
-		if (m_epsilon <= FLT_EPSILON)
-			createColocalsHash();
-		else
-			createColocalsBVH();
 	}
 
 	void createBoundaries() {
@@ -2461,30 +2377,7 @@ public:
 				edge = m_edgeMap.getNext(key, edge);
 			}
 		}
-		// If colocals were created, try every permutation.
-		/*
-		if (!m_nextColocalVertex.isEmpty()) {
-			uint32_t colocalVertex0 = vertex0;
-			for (;;) {
-				uint32_t colocalVertex1 = vertex1;
-				for (;;) {
-					EdgeKey key(colocalVertex0, colocalVertex1);
-					uint32_t edge = m_edgeMap.get(key);
-					while (edge != UINT32_MAX) {
-						// Don't find edges of ignored faces.
-						if (!isFaceIgnored(meshEdgeFace(edge)))
-							return edge;
-						edge = m_edgeMap.getNext(key, edge);
-					}
-					colocalVertex1 = m_nextColocalVertex[colocalVertex1];
-					if (colocalVertex1 == vertex1)
-						break; // Back to start.
-				}
-				colocalVertex0 = m_nextColocalVertex[colocalVertex0];
-				if (colocalVertex0 == vertex0)
-					break; // Back to start.
-			}
-		}*/
+
 		return UINT32_MAX;
 	}
 
@@ -2627,8 +2520,9 @@ public:
 	}
 
 	uint32_t firstColocalVertex(uint32_t vertex) const {
-		XA_DEBUG_ASSERT(m_firstColocalVertex.size() == m_positions.size());
-		return m_firstColocalVertex[vertex];
+		return vertex;
+		//XA_DEBUG_ASSERT(m_firstColocalVertex.size() == m_positions.size());
+		//return m_firstColocalVertex[vertex];
 	}
 
 	XA_INLINE float epsilon() const { return m_epsilon; }
@@ -2666,10 +2560,6 @@ private:
 	Array<Vector3> m_positions;
 	Array<Vector3> m_normals;
 	Array<Vector2> m_texcoords;
-
-	// Populated by createColocals
-	Array<uint32_t> m_nextColocalVertex; // In: vertex index. Out: the vertex index of the next colocal position.
-	Array<uint32_t> m_firstColocalVertex;
 
 	// Populated by createBoundaries
 	BitArray m_isBoundaryVertex;
@@ -5700,8 +5590,8 @@ public:
 			uint32_t unifiedIndices[3];
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t sourceVertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
-				//uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(sourceVertex);
-				uint32_t sourceUnifiedVertex = sourceVertex;
+				uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(sourceVertex);
+				//uint32_t sourceUnifiedVertex = sourceVertex;
 /*
 				if (m_generatorType == segment::ChartGeneratorType::OriginalUv && sourceVertex != sourceUnifiedVertex) {
 					// Original UVs: don't unify vertices with different UVs; we want to preserve UVs.
@@ -5762,8 +5652,8 @@ public:
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t vertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
 
-				//const uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(vertex);
-				const uint32_t sourceUnifiedVertex = vertex;
+				const uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(vertex);
+				//const uint32_t sourceUnifiedVertex = vertex;
 
 				const uint32_t parentVertex = parentMesh->vertexAt(faces[f] * 3 + i);
 				uint32_t unifiedVertex = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
@@ -6247,9 +6137,6 @@ private:
 			mesh->addFace(indices);
 		}
 
-		XA_PROFILE_START(createChartGroupMeshColocals)
-		mesh->createColocals();
-		XA_PROFILE_END(createChartGroupMeshColocals)
 		XA_PROFILE_START(createChartGroupMeshBoundaries)
 		printf("cre3\n");
 		mesh->createBoundaries();
@@ -7495,23 +7382,10 @@ void Destroy(Atlas *atlas) {
 }
 
 static void runAddMeshTask(void *groupUserData, void *taskUserData) {
-	XA_PROFILE_START(addMeshThread)
 	auto ctx = (Context *)groupUserData;
-	auto mesh = (internal::Mesh *)taskUserData;
+	//auto mesh = (internal::Mesh *)taskUserData;
 	internal::Progress *progress = ctx->addMeshProgress;
-	if (progress->cancel) {
-		XA_PROFILE_END(addMeshThread)
-		return;
-	}
-	XA_PROFILE_START(addMeshCreateColocals)
-	mesh->createColocals();
-	XA_PROFILE_END(addMeshCreateColocals)
-	if (progress->cancel) {
-		XA_PROFILE_END(addMeshThread)
-		return;
-	}
 	progress->increment(1);
-	XA_PROFILE_END(addMeshThread)
 }
 
 static internal::Vector3 DecodePosition(const MeshDecl &meshDecl, uint32_t index) {
@@ -7763,7 +7637,6 @@ void AddMeshJoin(Atlas *atlas) {
 		XA_PROFILE_PRINT_AND_RESET("   Total (real): ", addMeshReal)
 		XA_PROFILE_PRINT_AND_RESET("      Copy data: ", addMeshCopyData)
 		XA_PROFILE_PRINT_AND_RESET("   Total (thread): ", addMeshThread)
-		XA_PROFILE_PRINT_AND_RESET("      Create colocals: ", addMeshCreateColocals)
 #if XA_PROFILE_ALLOC
 		XA_PROFILE_PRINT_AND_RESET("   Alloc: ", alloc)
 #endif
@@ -8004,7 +7877,6 @@ void ComputeCharts(Atlas *atlas, ChartOptions options) {
 		XA_PROFILE_PRINT_AND_RESET("      Chart group compute charts (real): ", chartGroupComputeChartsReal)
 		XA_PROFILE_PRINT_AND_RESET("      Chart group compute charts (thread): ", chartGroupComputeChartsThread)
 		XA_PROFILE_PRINT_AND_RESET("         Create chart group mesh: ", createChartGroupMesh)
-		XA_PROFILE_PRINT_AND_RESET("            Create colocals: ", createChartGroupMeshColocals)
 		XA_PROFILE_PRINT_AND_RESET("            Create boundaries: ", createChartGroupMeshBoundaries)
 		XA_PROFILE_PRINT_AND_RESET("         Build atlas: ", buildAtlas)
 		XA_PROFILE_PRINT_AND_RESET("            Init: ", buildAtlasInit)
