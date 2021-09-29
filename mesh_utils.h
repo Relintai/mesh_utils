@@ -54,7 +54,7 @@ public:
 	Array remove_doubles_interpolate_normals(Array arr) const;
 
 	//Only unwraps, does not create new seams
-	PoolVector2Array uv_unwrap(Array arr) const;
+	PoolVector2Array uv_unwrap(Array arr, bool p_block_align = true, float p_texel_size = 0.05, int p_padding = 1, int p_max_chart_size = 4094) const;
 
 	MeshUtils();
 	~MeshUtils();

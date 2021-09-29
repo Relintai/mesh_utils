@@ -463,9 +463,7 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 	return retarr;
 }
 
-PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
-	float p_texel_size = 0.05;
-	
+PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_texel_size, int p_padding, int p_max_chart_size) const {
 	LocalVector<float> vertices;
 	LocalVector<float> normals;
 	LocalVector<int> indices;
@@ -546,12 +544,15 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 	input_mesh.vertexUvStride = 0;
 
 	xatlas_mu::ChartOptions chart_options;
-	chart_options.fixWinding = true;
+	//not sure whether this is better off as true or false, since I don't copy back the indices
+	//I'm leaving it on off for now
+	//TODO if the generated uvs have weird problems try to set this to true
+	chart_options.fixWinding = false;
 
 	xatlas_mu::PackOptions pack_options;
-	pack_options.padding = 1;
-	pack_options.maxChartSize = 4094; // Lightmap atlassing needs 2 for padding between meshes, so 4096-2
-	pack_options.blockAlign = true;
+	pack_options.padding = p_padding;
+	pack_options.maxChartSize = p_max_chart_size; // Lightmap atlassing needs 2 for padding between meshes, so 4096-2
+	pack_options.blockAlign = p_block_align;
 	pack_options.texelsPerUnit = 1.0 / p_texel_size;
 
 	xatlas_mu::Atlas *atlas = xatlas_mu::Create();
@@ -604,7 +605,7 @@ void MeshUtils::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_doubles", "arr"), &MeshUtils::remove_doubles);
 	ClassDB::bind_method(D_METHOD("remove_doubles_interpolate_normals", "arr"), &MeshUtils::remove_doubles_interpolate_normals);
 
-	ClassDB::bind_method(D_METHOD("uv_unwrap", "arr"), &MeshUtils::uv_unwrap);
+	ClassDB::bind_method(D_METHOD("uv_unwrap", "arr", "block_align", "texel_size", "padding", "max_chart_size"), &MeshUtils::uv_unwrap, true, 0.05, 1, 4094);
 }
 
 #if GODOT4
