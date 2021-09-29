@@ -604,9 +604,11 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays) const {
 	float max_x = 0;
 	float max_y = 0;
 	for (uint32_t i = 0; i < output.vertexCount; i++) {
-		r_vertex[i] = output.vertexArray[i].xref;
-		r_uv[i * 2 + 0] = output.vertexArray[i].uv[0] / w;
-		r_uv[i * 2 + 1] = output.vertexArray[i].uv[1] / h;
+		uint32_t vind = output.vertexArray[i].xref;
+		r_vertex[i] = vind;
+
+		r_uv[vind * 2 + 0] = output.vertexArray[i].uv[0] / w;
+		r_uv[vind * 2 + 1] = output.vertexArray[i].uv[1] / h;
 		max_x = MAX(max_x, output.vertexArray[i].uv[0]);
 		max_y = MAX(max_y, output.vertexArray[i].uv[1]);
 	}
