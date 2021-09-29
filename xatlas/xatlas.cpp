@@ -2395,6 +2395,42 @@ public:
 		for (uint32_t i = 0; i < faceCount; i++) {
 			if (isFaceIgnored(i))
 				continue;
+
+			for (uint32_t j = 0; j < 3; j++) {
+				const uint32_t edge = i * 3 + j;
+				const uint32_t vertex0 = m_indices[edge];
+				const uint32_t vertex1 = m_indices[i * 3 + (j + 1) % 3];
+
+				// If there is an edge with opposite winding to this one, the edge isn't on a boundary. (orig)
+				//I have a boundary where vertices are not joined by indices -> they shouldnt be the same
+				//does xatlas merge verts?
+
+				const uint32_t oppositeEdge = findEdge(vertex1, vertex0);
+				if (oppositeEdge != UINT32_MAX) {
+					m_oppositeEdges[edge] = oppositeEdge;
+				} else {
+					m_boundaryEdges.push_back(edge);
+					m_isBoundaryVertex.set(vertex0);
+					m_isBoundaryVertex.set(vertex1);
+				}
+			}
+		}
+	}
+
+	void createBoundariesOriginal() {
+		const uint32_t edgeCount = m_indices.size();
+		const uint32_t vertexCount = m_positions.size();
+		m_oppositeEdges.resize(edgeCount);
+		m_boundaryEdges.reserve(uint32_t(edgeCount * 0.1f));
+		m_isBoundaryVertex.resize(vertexCount);
+		m_isBoundaryVertex.zeroOutMemory();
+		for (uint32_t i = 0; i < edgeCount; i++)
+			m_oppositeEdges[i] = UINT32_MAX;
+		const uint32_t faceCount = m_indices.size() / 3;
+		for (uint32_t i = 0; i < faceCount; i++) {
+			if (isFaceIgnored(i))
+				continue;
+
 			for (uint32_t j = 0; j < 3; j++) {
 				const uint32_t edge = i * 3 + j;
 				const uint32_t vertex0 = m_indices[edge];
@@ -2426,6 +2462,7 @@ public:
 			}
 		}
 		// If colocals were created, try every permutation.
+		/*
 		if (!m_nextColocalVertex.isEmpty()) {
 			uint32_t colocalVertex0 = vertex0;
 			for (;;) {
@@ -2447,7 +2484,7 @@ public:
 				if (colocalVertex0 == vertex0)
 					break; // Back to start.
 			}
-		}
+		}*/
 		return UINT32_MAX;
 	}
 
@@ -4511,7 +4548,7 @@ struct AtlasData {
 		const uint32_t edgeCount = mesh->edgeCount();
 		edgeDihedralAngles.resize(edgeCount);
 		edgeLengths.resize(edgeCount);
-		
+
 		faceAreas.resize(faceCount);
 		//if (options.useInputMeshUvs)
 			faceUvAreas.resize(faceCount);
@@ -5688,6 +5725,7 @@ public:
 			}
 			m_unifiedMesh->addFace(unifiedIndices);
 		}
+		printf("cre\n");
 		m_unifiedMesh->createBoundaries();
 #if XA_CHECK_T_JUNCTIONS
 		m_tjunctionCount = meshCheckTJunctions(*m_unifiedMesh);
@@ -5744,6 +5782,7 @@ public:
 			}
 			m_unifiedMesh->addFace(unifiedIndices);
 		}
+		printf("cre2\n");
 		m_unifiedMesh->createBoundaries();
 		// Need to store texcoords for backup/restore so packing can be run multiple times.
 		backupTexcoords();
@@ -6198,6 +6237,7 @@ private:
 		mesh->createColocals();
 		XA_PROFILE_END(createChartGroupMeshColocals)
 		XA_PROFILE_START(createChartGroupMeshBoundaries)
+		printf("cre3\n");
 		mesh->createBoundaries();
 		mesh->destroyEdgeMap(); // Only needed it for createBoundaries.
 		XA_PROFILE_END(createChartGroupMeshBoundaries)
@@ -6582,27 +6622,33 @@ struct AddChartTaskArgs {
 };
 
 static void runAddChartTask(void *groupUserData, void *taskUserData) {
+	printf("1\n");
 	XA_PROFILE_START(packChartsAddChartsThread)
 	auto boundingBox = (ThreadLocal<BoundingBox2D> *)groupUserData;
 	auto args = (AddChartTaskArgs *)taskUserData;
 	param::Chart *paramChart = args->paramChart;
+	printf("2\n");
 	XA_PROFILE_START(packChartsAddChartsRestoreTexcoords)
 	paramChart->restoreTexcoords();
 	XA_PROFILE_END(packChartsAddChartsRestoreTexcoords)
+	printf("3\n");
 	Mesh *mesh = paramChart->unifiedMesh();
 	Chart *chart = args->chart = XA_NEW(MemTag::Default, Chart);
 	chart->atlasIndex = -1;
 	chart->material = 0;
 	chart->indices = mesh->indices();
 	chart->parametricArea = mesh->computeParametricArea();
+	printf("4\n");
 	if (chart->parametricArea < kAreaEpsilon) {
 		// When the parametric area is too small we use a rough approximation to prevent divisions by very small numbers.
 		const Vector2 bounds = paramChart->computeParametricBounds();
 		chart->parametricArea = bounds.x * bounds.y;
 	}
+	printf("5\n");
 	chart->surfaceArea = mesh->computeSurfaceArea();
 	chart->vertices = mesh->texcoords();
 	chart->boundaryEdges = &mesh->boundaryEdges();
+	printf("6\n");
 	// Compute bounding box of chart.
 	BoundingBox2D &bb = boundingBox->get();
 	bb.clear();
@@ -6610,11 +6656,13 @@ static void runAddChartTask(void *groupUserData, void *taskUserData) {
 		if (mesh->isBoundaryVertex(v))
 			bb.appendBoundaryVertex(mesh->texcoord(v));
 	}
+	printf("7\n");
 	bb.compute(mesh->texcoords());
 	chart->majorAxis = bb.majorAxis;
 	chart->minorAxis = bb.minorAxis;
 	chart->minCorner = bb.minCorner;
 	chart->maxCorner = bb.maxCorner;
+	printf("8\n");
 	XA_PROFILE_END(packChartsAddChartsThread)
 }
 
