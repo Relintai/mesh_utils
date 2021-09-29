@@ -5700,17 +5700,23 @@ public:
 			uint32_t unifiedIndices[3];
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t sourceVertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
-				uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(sourceVertex);
+				//uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(sourceVertex);
+				uint32_t sourceUnifiedVertex = sourceVertex;
+/*
 				if (m_generatorType == segment::ChartGeneratorType::OriginalUv && sourceVertex != sourceUnifiedVertex) {
 					// Original UVs: don't unify vertices with different UVs; we want to preserve UVs.
 					if (!equal(sourceMesh->texcoord(sourceVertex), sourceMesh->texcoord(sourceUnifiedVertex), sourceMesh->epsilon()))
 						sourceUnifiedVertex = sourceVertex;
 				}
-				uint32_t unifiedVertex = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
-				if (unifiedVertex == UINT32_MAX) {
-					unifiedVertex = sourceVertexToUnifiedVertexMap.add(sourceUnifiedVertex);
-					m_unifiedMesh->addVertex(sourceMesh->position(sourceVertex), Vector3(0.0f), sourceMesh->texcoord(sourceVertex));
-				}
+*/
+
+				uint32_t unifiedVertex;// = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
+
+				//if (unifiedVertex == UINT32_MAX) {
+				unifiedVertex = sourceVertexToUnifiedVertexMap.add(sourceUnifiedVertex);
+				m_unifiedMesh->addVertex(sourceMesh->position(sourceVertex), Vector3(0.0f), sourceMesh->texcoord(sourceVertex));
+				//}
+
 				if (sourceVertexToChartVertexMap.get(sourceVertex) == UINT32_MAX) {
 					sourceVertexToChartVertexMap.add(sourceVertex);
 					m_vertexToSourceVertexMap.push_back(sourceVertex);
@@ -5755,7 +5761,10 @@ public:
 		for (uint32_t f = 0; f < faceCount; f++) {
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t vertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
-				const uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(vertex);
+
+				//const uint32_t sourceUnifiedVertex = sourceMesh->firstColocalVertex(vertex);
+				const uint32_t sourceUnifiedVertex = vertex;
+
 				const uint32_t parentVertex = parentMesh->vertexAt(faces[f] * 3 + i);
 				uint32_t unifiedVertex = sourceVertexToUnifiedVertexMap.get(sourceUnifiedVertex);
 				if (unifiedVertex == UINT32_MAX) {
@@ -5777,7 +5786,10 @@ public:
 			for (uint32_t i = 0; i < 3; i++) {
 				const uint32_t vertex = sourceMesh->vertexAt(m_faceToSourceFaceMap[f] * 3 + i);
 				m_originalIndices[f * 3 + i] = chartMeshIndices[vertex];
-				const uint32_t unifiedVertex = sourceMesh->firstColocalVertex(vertex);
+
+				//const uint32_t unifiedVertex = sourceMesh->firstColocalVertex(vertex);
+				const uint32_t unifiedVertex = vertex;
+
 				unifiedIndices[i] = sourceVertexToUnifiedVertexMap.get(unifiedVertex);
 			}
 			m_unifiedMesh->addFace(unifiedIndices);
@@ -6220,6 +6232,7 @@ private:
 				}
 			}
 		}
+
 		// Add faces.
 		for (uint32_t f = 0; f < faceCount; f++) {
 			const uint32_t face = m_faceToSourceFaceMap[f];
@@ -6233,6 +6246,7 @@ private:
 			// Don't copy flags - ignored faces aren't used by chart groups, they are handled by InvalidMeshGeometry.
 			mesh->addFace(indices);
 		}
+
 		XA_PROFILE_START(createChartGroupMeshColocals)
 		mesh->createColocals();
 		XA_PROFILE_END(createChartGroupMeshColocals)
