@@ -67,23 +67,35 @@ Array MeshUtils::merge_mesh_array(Array arr) const {
 			int remk = rem - k;
 
 			verts.remove(remk);
-			normals.remove(remk);
-			uvs.remove(remk);
-			colors.remove(remk);
+			if (normals.size() > 0)
+				normals.remove(remk);
+			if (uvs.size() > 0)
+				uvs.remove(remk);
+			if (colors.size() > 0)
+				colors.remove(remk);
 
-			int bindex = remk * 4;
-			for (int l = 0; l < 4; ++l) {
-				bones.remove(bindex);
-				weights.remove(bindex);
+			if (bones.size() > 0) {
+				int bindex = remk * 4;
+				for (int l = 0; l < 4; ++l) {
+					bones.remove(bindex);
+				}
+			}
+
+			if (weights.size() > 0) {
+				int bindex = remk * 4;
+				for (int l = 0; l < 4; ++l) {
+					weights.remove(bindex);
+				}
 			}
 
 			for (int j = 0; j < indices.size(); ++j) {
 				int indx = indices[j];
 
-				if (indx == remk)
+				if (indx == remk) {
 					indices.set(j, i);
-				else if (indx > remk)
+				} else if (indx > remk) {
 					indices.set(j, indx - 1);
+				}
 			}
 		}
 
@@ -98,12 +110,12 @@ Array MeshUtils::merge_mesh_array(Array arr) const {
 		arr[VisualServer::ARRAY_TEX_UV] = uvs;
 	if (colors.size() > 0)
 		arr[VisualServer::ARRAY_COLOR] = colors;
-	if (indices.size() > 0)
-		arr[VisualServer::ARRAY_INDEX] = indices;
 	if (bones.size() > 0)
 		arr[VisualServer::ARRAY_BONES] = bones;
 	if (weights.size() > 0)
 		arr[VisualServer::ARRAY_WEIGHTS] = weights;
+	if (indices.size() > 0)
+		arr[VisualServer::ARRAY_INDEX] = indices;
 
 	return arr;
 }
