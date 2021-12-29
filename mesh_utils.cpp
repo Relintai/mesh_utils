@@ -50,6 +50,13 @@ Array MeshUtils::merge_mesh_array(Array arr) const {
 	PoolIntArray bones = arr[VisualServer::ARRAY_BONES];
 	PoolRealArray weights = arr[VisualServer::ARRAY_WEIGHTS];
 
+	ERR_FAIL_COND_V(normals.size() != 0 && normals.size() != verts.size(), Array());
+	ERR_FAIL_COND_V(uvs.size() != 0 && uvs.size() != verts.size(), Array());
+	ERR_FAIL_COND_V(colors.size() != 0 && colors.size() != verts.size(), Array());
+	ERR_FAIL_COND_V(bones.size() != 0 && bones.size() != (verts.size() * 4), Array());
+	ERR_FAIL_COND_V(weights.size() != 0 && weights.size() != (verts.size() * 4), Array());
+	ERR_FAIL_COND_V(bones.size() != weights.size(), Array());
+
 	int i = 0;
 	while (i < verts.size()) {
 		Vector3 v = verts[i];
@@ -167,8 +174,8 @@ Array MeshUtils::remove_doubles(Array arr) const {
 	PoolRealArray weights = arr[VisualServer::ARRAY_WEIGHTS];
 
 	ERR_FAIL_COND_V(normals.size() != 0 && normals.size() != verts.size(), Array());
-	ERR_FAIL_COND_V(uvs.size() != 0 && normals.size() != verts.size(), Array());
-	ERR_FAIL_COND_V(colors.size() != 0 && normals.size() != verts.size(), Array());
+	ERR_FAIL_COND_V(uvs.size() != 0 && uvs.size() != verts.size(), Array());
+	ERR_FAIL_COND_V(colors.size() != 0 && colors.size() != verts.size(), Array());
 	ERR_FAIL_COND_V(bones.size() != 0 && bones.size() != (verts.size() * 4), Array());
 	ERR_FAIL_COND_V(weights.size() != 0 && weights.size() != (verts.size() * 4), Array());
 	ERR_FAIL_COND_V(bones.size() != weights.size(), Array());
