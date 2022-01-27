@@ -31,6 +31,10 @@ SOFTWARE.
 
 #if GODOT4
 #define Texture Texture2D
+
+#include "core/math/delaunay_3d.h"
+#else
+#include "delaunay/delaunay_3d.h"
 #endif
 
 MeshUtils *MeshUtils::_instance;
@@ -592,6 +596,29 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 	return retarr;
 }
 
+PoolIntArray MeshUtils::delaunay3d_tetrahedralize(const Vector<Vector3> &p_points) {
+	Vector<Delaunay3D::OutputSimplex> data = Delaunay3D::tetrahedralize(p_points);
+
+	PoolIntArray ret;
+	ret.resize(data.size() * 4);
+	PoolIntArray::Write w = ret.write();
+
+	for (int i = 0; i < data.size(); ++i) {
+		int indx = i * 4;
+
+		const Delaunay3D::OutputSimplex &s = data[i];
+
+		w[indx] = s.points[0];
+		w[indx + 1] = s.points[1];
+		w[indx + 2] = s.points[2];
+		w[indx + 3] = s.points[3];
+	}
+
+	w.release();
+
+	return ret;
+}
+
 MeshUtils::MeshUtils() {
 	_instance = this;
 }
@@ -608,6 +635,8 @@ void MeshUtils::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_doubles_interpolate_normals", "arr"), &MeshUtils::remove_doubles_interpolate_normals);
 
 	ClassDB::bind_method(D_METHOD("uv_unwrap", "arr", "block_align", "texel_size", "padding", "max_chart_size"), &MeshUtils::uv_unwrap, true, 0.05, 1, 4094);
+
+	ClassDB::bind_method(D_METHOD("delaunay3d_tetrahedralize", "points"), &MeshUtils::delaunay3d_tetrahedralize);
 }
 
 #if GODOT4

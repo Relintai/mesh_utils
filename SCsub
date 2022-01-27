@@ -1,4 +1,5 @@
 import os
+import version
 
 Import('env')
 
@@ -8,13 +9,15 @@ if os.path.isdir('../mesh_data_resource'):
     module_env.Append(CPPDEFINES=['MESH_DATA_RESOURCE_PRESENT'])
 
 sources = [
-
     "register_types.cpp",
     "mesh_utils.cpp",
     "mesh_merger.cpp",
     "fast_quadratic_mesh_simplifier.cpp",
     "xatlas/xatlas.cpp",
 ]
+
+if version.major < 4:
+    sources.append("delaunay/r128.c")
 
 if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':
     # Shared lib compilation
