@@ -161,11 +161,7 @@ Array MeshMerger::build_mesh() {
 		a[VisualServer::ARRAY_VERTEX] = array;
 	}
 
-	if ((_format & VisualServer::ARRAY_FORMAT_NORMAL) == 0) {
-		generate_normals();
-	}
-
-	{
+	if ((_format & VisualServer::ARRAY_FORMAT_NORMAL) != 0) {
 		PoolVector<Vector3> array;
 		array.resize(_vertices.size());
 #if !GODOT4
