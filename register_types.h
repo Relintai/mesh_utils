@@ -25,7 +25,9 @@ SOFTWARE.
 
 */
 
-void register_mesh_utils_types();
-void unregister_mesh_utils_types();
+#include "modules/register_module_types.h"
+
+void initialize_mesh_utils_module(ModuleInitializationLevel p_level);
+void uninitialize_mesh_utils_module(ModuleInitializationLevel p_level);
 
 #endif

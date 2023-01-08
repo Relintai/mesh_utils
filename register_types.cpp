@@ -38,17 +38,21 @@ SOFTWARE.
 
 static MeshUtils *mesh_utils = NULL;
 
-void register_mesh_utils_types() {
-	ClassDB::register_class<FastQuadraticMeshSimplifier>();
-	ClassDB::register_class<MeshMerger>();
+void initialize_mesh_utils_module(ModuleInitializationLevel p_level) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		GDREGISTER_CLASS(FastQuadraticMeshSimplifier);
+		GDREGISTER_CLASS(MeshMerger);
 
-	mesh_utils = memnew(MeshUtils);
-	ClassDB::register_class<MeshUtils>();
-	Engine::get_singleton()->add_singleton(Engine::Singleton("MeshUtils", MeshUtils::get_singleton()));
+		mesh_utils = memnew(MeshUtils);
+		GDREGISTER_CLASS(MeshUtils);
+		Engine::get_singleton()->add_singleton(Engine::Singleton("MeshUtils", MeshUtils::get_singleton()));
+	}
 }
 
-void unregister_mesh_utils_types() {
-	if (mesh_utils) {
-		memdelete(mesh_utils);
+void initialize_mesh_utils_module(ModuleInitializationLevel p_level) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
+		if (mesh_utils) {
+			memdelete(mesh_utils);
+		}
 	}
 }
