@@ -27,7 +27,7 @@ SOFTWARE.
 */
 
 #include "core/color.h"
-#include "core/hashfuncs.h"
+#include "core/templates/hashfuncs.h"
 #include "core/math/vector2.h"
 #include "core/math/vector3.h"
 #include "core/vector.h"
