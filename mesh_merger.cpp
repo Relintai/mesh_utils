@@ -396,7 +396,7 @@ void MeshMerger::remove_doubles() {
 		for (int j = 0; j < indices.size(); ++j) {
 			int index = indices[j];
 
-			_vertices.remove(index);
+			_vertices.remove_at(index);
 
 			//make all indices that were bigger than the one we replaced one lower
 			for (int k = 0; k < _indices.size(); ++k) {
@@ -448,8 +448,8 @@ void MeshMerger::remove_doubles_hashed() {
 		for (int j = 0; j < indices.size(); ++j) {
 			int index = indices[j];
 
-			hashes.remove(index);
-			_vertices.remove(index);
+			hashes.remove_at(index);
+			_vertices.remove_at(index);
 
 			//make all indices that were bigger than the one we replaced one lower
 			for (int k = 0; k < _indices.size(); ++k) {
@@ -755,7 +755,7 @@ Vector3 MeshMerger::get_vertex(const int idx) const {
 }
 
 void MeshMerger::remove_vertex(const int idx) {
-	_vertices.remove(idx);
+	_vertices.remove_at(idx);
 }
 
 PoolVector<Vector3> MeshMerger::get_normals() const {
@@ -917,7 +917,7 @@ int MeshMerger::get_index(const int idx) const {
 }
 
 void MeshMerger::remove_index(const int idx) {
-	_indices.remove(idx);
+	_indices.remove_at(idx);
 }
 
 MeshMerger::MeshMerger() {
@@ -974,7 +974,7 @@ void MeshMerger::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_mesh_data_resource_bone", "mesh", "bones", "wrights", "transform", "uv_rect"), &MeshMerger::add_mesh_data_resource_bone, DEFVAL(Transform()), DEFVAL(Rect2(0, 0, 1, 1)));
 #endif
 
-	BIND_VMETHOD(MethodInfo("_add_mesher", PropertyInfo(Variant::OBJECT, "mesher", PROPERTY_HINT_RESOURCE_TYPE, "MeshMerger")));
+	//BIND_VMETHOD(MethodInfo("_add_mesher", PropertyInfo(Variant::OBJECT, "mesher", PROPERTY_HINT_RESOURCE_TYPE, "MeshMerger")));
 	ClassDB::bind_method(D_METHOD("add_mesher", "mesher"), &MeshMerger::add_mesher);
 
 	ClassDB::bind_method(D_METHOD("get_vertices"), &MeshMerger::get_vertices);

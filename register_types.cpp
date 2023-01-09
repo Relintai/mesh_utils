@@ -49,7 +49,7 @@ void initialize_mesh_utils_module(ModuleInitializationLevel p_level) {
 	}
 }
 
-void initialize_mesh_utils_module(ModuleInitializationLevel p_level) {
+void uninitialize_mesh_utils_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		if (mesh_utils) {
 			memdelete(mesh_utils);

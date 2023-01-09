@@ -28,20 +28,19 @@ SOFTWARE.
 #include "core/version.h"
 
 #if VERSION_MAJOR > 3
-#include "core/object/reference.h"
-#include "core/templates/vector.h"
 #include "core/math/color.h"
+#include "core/object/ref_counted.h"
+#include "core/templates/vector.h"
 #else
+#include "core/color.h"
 #include "core/reference.h"
 #include "core/vector.h"
-#include "core/color.h"
 #endif
 
 #include "defines.h"
 
 #include pool_vector_h
 include_pool_vector
-
 #include mesh_instance_h
 
 #include "core/math/rect2.h"
@@ -55,12 +54,11 @@ include_pool_vector
 #include "../mesh_data_resource/mesh_data_resource.h"
 #endif
 
-		class MeshMerger : public Reference {
-	GDCLASS(MeshMerger, Reference);
+		class MeshMerger : public RefCounted {
+	GDCLASS(MeshMerger, RefCounted);
 
 public:
 	struct Vertex {
-
 		Vector3 vertex;
 		Color color;
 		Vector3 normal; // normal, binormal, tangent

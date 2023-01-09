@@ -21,8 +21,8 @@ SOFTWARE.
 */
 
 #include "mesh_utils.h"
-#include "core/local_vector.h"
-#include "core/variant.h"
+#include "core/templates/local_vector.h"
+#include "core/variant/variant.h"
 #include "scene/resources/mesh.h"
 
 #include visual_server_h
@@ -77,25 +77,25 @@ Array MeshUtils::merge_mesh_array(Array arr) const {
 			int rem = equals[k];
 			int remk = rem - k;
 
-			verts.remove(remk);
+			verts.remove_at(remk);
 			if (normals.size() > 0)
-				normals.remove(remk);
+				normals.remove_at(remk);
 			if (uvs.size() > 0)
-				uvs.remove(remk);
+				uvs.remove_at(remk);
 			if (colors.size() > 0)
-				colors.remove(remk);
+				colors.remove_at(remk);
 
 			if (bones.size() > 0) {
 				int bindex = remk * 4;
 				for (int l = 0; l < 4; ++l) {
-					bones.remove(bindex);
+					bones.remove_at(bindex);
 				}
 			}
 
 			if (weights.size() > 0) {
 				int bindex = remk * 4;
 				for (int l = 0; l < 4; ++l) {
-					weights.remove(bindex);
+					weights.remove_at(bindex);
 				}
 			}
 
@@ -134,7 +134,7 @@ Array MeshUtils::bake_mesh_array_uv(Array arr, Ref<Texture> tex, float mul_color
 	ERR_FAIL_COND_V(arr.size() != VisualServer::ARRAY_MAX, arr);
 	ERR_FAIL_COND_V(!tex.is_valid(), arr);
 
-	Ref<Image> img = tex->get_data();
+	Ref<Image> img = tex->get_image();
 
 	ERR_FAIL_COND_V(!img.is_valid(), arr);
 
@@ -271,25 +271,25 @@ Array MeshUtils::remove_doubles(Array arr) const {
 			int rem = equals[k];
 			int remk = rem - k;
 
-			verts.remove(remk);
+			verts.remove_at(remk);
 
 			if (normals.size() > 0) {
-				normals.remove(remk);
+				normals.remove_at(remk);
 			}
 
 			if (uvs.size() > 0) {
-				uvs.remove(remk);
+				uvs.remove_at(remk);
 			}
 
 			if (colors.size() > 0) {
-				colors.remove(remk);
+				colors.remove_at(remk);
 			}
 
 			if (bones.size() > 0) {
 				int bindex = remk * 4;
 				for (int l = 0; l < 4; ++l) {
-					bones.remove(bindex);
-					weights.remove(bindex);
+					bones.remove_at(bindex);
+					weights.remove_at(bindex);
 				}
 			}
 
@@ -423,32 +423,32 @@ Array MeshUtils::remove_doubles_interpolate_normals(Array arr) const {
 			int rem = equals[k];
 			int remk = rem - k;
 
-			verts.remove(remk);
+			verts.remove_at(remk);
 
 			if (normals.size() > 0) {
 				Vector3 n = normals[remk];
-				normals.remove(remk);
+				normals.remove_at(remk);
 
 				if (k == 0) {
 					normal = n;
 				} else {
-					normal = normal.linear_interpolate(n, 0.5);
+					normal = normal.lerp(n, 0.5);
 				}
 			}
 
 			if (uvs.size() > 0) {
-				uvs.remove(remk);
+				uvs.remove_at(remk);
 			}
 
 			if (colors.size() > 0) {
-				colors.remove(remk);
+				colors.remove_at(remk);
 			}
 
 			if (bones.size() > 0) {
 				int bindex = remk * 4;
 				for (int l = 0; l < 4; ++l) {
-					bones.remove(bindex);
-					weights.remove(bindex);
+					bones.remove_at(bindex);
+					weights.remove_at(bindex);
 				}
 			}
 
@@ -491,12 +491,12 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 	LocalVector<float> normals;
 	LocalVector<int> indices;
 
-	PoolVector<Vector3> rvertices = arrays[Mesh::ARRAY_VERTEX];
+	Vector<Vector3> rvertices = arrays[Mesh::ARRAY_VERTEX];
 	int vc = rvertices.size();
-	PoolVector<Vector3>::Read r = rvertices.read();
+	const Vector3 *r = rvertices.ptr();
 
-	PoolVector<Vector3> rnormals = arrays[Mesh::ARRAY_NORMAL];
-	PoolVector<Vector3>::Read rn = rnormals.read();
+	Vector<Vector3> rnormals = arrays[Mesh::ARRAY_NORMAL];
+	const Vector3 *rn = rnormals.ptr();
 
 	int vertex_ofs = vertices.size() / 3;
 
@@ -515,7 +515,7 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 		normals[(j + vertex_ofs) * 3 + 2] = n.z;
 	}
 
-	PoolVector<int> rindices = arrays[Mesh::ARRAY_INDEX];
+	Vector<int> rindices = arrays[Mesh::ARRAY_INDEX];
 	int ic = rindices.size();
 
 	if (ic == 0) {
@@ -526,7 +526,7 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 		}
 
 	} else {
-		PoolVector<int>::Read ri = rindices.read();
+		const int *ri = rindices.ptr();
 
 		for (int j = 0; j < ic / 3; j++) {
 			indices.push_back(vertex_ofs + ri[j * 3 + 0]);
@@ -581,15 +581,13 @@ PoolVector2Array MeshUtils::uv_unwrap(Array arrays, bool p_block_align, float p_
 	PoolVector2Array retarr;
 	retarr.resize(output.vertexCount);
 
-	PoolVector2Array::Write retarrw = retarr.write();
+	Vector2 *retarrw = retarr.ptrw();
 
 	for (uint32_t i = 0; i < output.vertexCount; i++) {
 		int vind = output.vertexArray[i].xref;
 
 		retarrw[vind] = Vector2(output.vertexArray[i].uv[0] / w, output.vertexArray[i].uv[1] / h);
 	}
-
-	retarrw.release();
 
 	xatlas_mu::Destroy(atlas);
 
@@ -601,7 +599,7 @@ PoolIntArray MeshUtils::delaunay3d_tetrahedralize(const Vector<Vector3> &p_point
 
 	PoolIntArray ret;
 	ret.resize(data.size() * 4);
-	PoolIntArray::Write w = ret.write();
+	int64_t *w = ret.ptrw();
 
 	for (int i = 0; i < data.size(); ++i) {
 		int indx = i * 4;
@@ -613,8 +611,6 @@ PoolIntArray MeshUtils::delaunay3d_tetrahedralize(const Vector<Vector3> &p_point
 		w[indx + 2] = s.points[2];
 		w[indx + 3] = s.points[3];
 	}
-
-	w.release();
 
 	return ret;
 }
